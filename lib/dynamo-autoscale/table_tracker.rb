@@ -198,6 +198,30 @@ module DynamoAutoscale
       end
     end
 
+    def wasted_write_cost
+      UnitCost.write(wasted_write_units)
+    end
+
+    def wasted_read_cost
+      UnitCost.read(wasted_read_units)
+    end
+
+    def lost_write_cost
+      UnitCost.write(lost_write_units)
+    end
+
+    def lost_read_cost
+      UnitCost.read(lost_read_units)
+    end
+
+    def total_write_cost
+      UnitCost.write(total_write_units)
+    end
+
+    def total_read_cost
+      UnitCost.read(total_read_units)
+    end
+
     def wasted_read_percent
       (wasted_read_units / total_read_units) * 100.0
     end
@@ -243,7 +267,7 @@ module DynamoAutoscale
     # end
 
     def to_csv! opts = {}
-      path = opts[:path] or File.join(DynamoAutoscale.root, "#{self.name}.csv")
+      path = opts[:path] or DynamoAutoscale.root_dir("#{self.name}.csv")
 
       CSV.open(path, 'w') do |csv|
         csv << [
@@ -271,7 +295,7 @@ module DynamoAutoscale
     def graph! opts = {}
       data_tmp = File.join(Dir.tmpdir, 'data.csv')
       png_tmp  = opts[:path] || File.join(Dir.tmpdir, 'graph.png')
-      r_script = File.join(DynamoAutoscale.root, 'rlib', 'dynamodb_graph.r')
+      r_script = DynamoAutoscale.rlib_dir('dynamodb_graph.r')
 
       to_csv!(path: data_tmp)
 
@@ -296,7 +320,7 @@ module DynamoAutoscale
     def scatterplot_for! metric
       data_tmp = File.join(Dir.tmpdir, 'data.csv')
       png_tmp  = File.join(Dir.tmpdir, 'boxplot.png')
-      r_script = File.join(DynamoAutoscale.root, 'rlib', 'dynamodb_boxplot.r')
+      r_script = DynamoAutoscale.rlib_dir('dynamodb_boxplot.r')
 
       to_csv!(data_tmp)
 
@@ -309,16 +333,30 @@ module DynamoAutoscale
       end
     end
 
-    def report!
-      puts "         Table: #{name}"
-      puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
-      puts " Total r/units: #{total_read_units.round(2)}"
-      puts "  Lost r/units: #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
-      puts "Wasted w/units: #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
-      puts " Total w/units: #{total_write_units.round(2)}"
-      puts "  Lost w/units: #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
-      puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
-      puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
+    def report! opts = {}
+      opts[:metric] ||= :units
+
+      if opts[:metric] == :units
+        puts "         Table: #{name}"
+        puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
+        puts " Total r/units: #{total_read_units.round(2)}"
+        puts "  Lost r/units: #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
+        puts "Wasted w/units: #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
+        puts " Total w/units: #{total_write_units.round(2)}"
+        puts "  Lost w/units: #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
+        puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
+        puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
+      elsif opts[:metric] == :cost
+        puts "         Table: #{name}"
+        puts "Wasted r/cost: $#{wasted_read_cost.round(2)} (#{wasted_read_percent.round(2)}%)"
+        puts " Total r/cost: $#{total_read_cost.round(2)}"
+        puts "  Lost r/cost: $#{lost_read_cost.round(2)} (#{lost_read_percent.round(2)}%)"
+        puts "Wasted w/cost: $#{wasted_write_cost.round(2)} (#{wasted_write_percent.round(2)}%)"
+        puts " Total w/cost: $#{total_write_cost.round(2)}"
+        puts "  Lost w/cost: $#{lost_write_cost.round(2)} (#{lost_write_percent.round(2)}%)"
+        puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
+        puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
+      end
     end
 
     private

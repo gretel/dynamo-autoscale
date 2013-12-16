@@ -12,30 +12,34 @@ module DynamoAutoscale
       },
     }
 
-    # Returns the cost of N read units for an hour in a given region, which
-    # defaults to whatever is in
-    # DynamoAutoscale::DEFAULT_AWS_REGION.
+    # Returns the cost of N read units for an hour in the region given by
+    # AWS.config.region
     #
     # Example:
     #
-    #   DynamoAutoscale::UnitCost.read(500, region: 'us-west-1')
+    #   DynamoAutoscale::UnitCost.read(500)
     #   #=> 0.065
     def self.read units, opts = {}
-      pricing = HOURLY_PRICING[opts[:region] || DEFAULT_AWS_REGION][:read]
-      ((units / pricing[:per].to_f) * pricing[:dollars])
+      if pricing = HOURLY_PRICING[AWS.config.region]
+        ((units / pricing[:read][:per].to_f) * pricing[:read][:dollars])
+      else
+        nil
+      end
     end
 
-    # Returns the cost of N write units for an hour in a given region, which
-    # defaults to whatever is in
-    # DynamoAutoscale::DEFAULT_AWS_REGION.
+    # Returns the cost of N write units for an hour in the region given by
+    # AWS.config.region.
     #
     # Example:
     #
-    #   DynamoAutoscale::UnitCost.write(500, region: 'us-west-1')
+    #   DynamoAutoscale::UnitCost.write(500)
     #   #=> 0.325
     def self.write units, opts = {}
-      pricing = HOURLY_PRICING[opts[:region] || DEFAULT_AWS_REGION][:write]
-      ((units / pricing[:per].to_f) * pricing[:dollars])
+      if pricing = HOURLY_PRICING[AWS.config.region]
+        ((units / pricing[:write][:per].to_f) * pricing[:write][:dollars])
+      else
+        nil
+      end
     end
   end
 end

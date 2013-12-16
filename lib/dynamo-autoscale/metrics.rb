@@ -2,32 +2,11 @@ module DynamoAutoscale
   class Metrics
     include DynamoAutoscale::Logger
 
+    CW = AWS::CloudWatch.new
     DEFAULT_OPTS = {
-      namespace:   'AWS/DynamoDB',
-      period:      300,
-      # metric_name: metric,
-      # start_time:  (NOW - 3600).iso8601,
-      # end_time:    NOW.iso8601,
-      # dimensions:  [{
-      #   name: "TableName", value: TABLE_NAME,
-      # }],
+      namespace: 'AWS/DynamoDB',
+      period:    300,
     }
-
-    # Returns a CloudWatch client object for a given region. If no region
-    # exists, the region defaults to whatever is in
-    # DynamoAutoscale::DEFAULT_AWS_REGION.
-    #
-    # CloudWatch client documentation:
-    #   https://github.com/aws/aws-sdk-ruby/blob/master/lib/aws/cloud_watch/client.rb
-    def self.client region = nil
-      @client ||= Hash.new do |hash, _region|
-        hash[_region] = AWS::CloudWatch.new({
-          cloud_watch_endpoint: "monitoring.#{_region}.amazonaws.com",
-        }).client
-      end
-
-      @client[region || DEFAULT_AWS_REGION]
-    end
 
     # Returns a hash of timeseries data. Looks a bit like this:
     #
@@ -171,22 +150,21 @@ module DynamoAutoscale
     # A base method that gets called by wrapper methods defined above. Makes a
     # call to CloudWatch, getting statistics on whatever metric is given.
     def self.metric_statistics table_name, opts = {}
-      region = opts.delete :region
       opts   = DEFAULT_OPTS.merge({
         dimensions:  [{ name: "TableName", value: table_name }],
         start_time:  1.hour.ago,
         end_time:    Time.now,
       }).merge(opts)
 
-      if opts[:start_time] and opts[:start_time].respond_to? :iso8601
+      if opts[:start_time] and opts[:start_time].respond_to?(:iso8601)
         opts[:start_time] = opts[:start_time].iso8601
       end
 
-      if opts[:end_time] and opts[:end_time].respond_to? :iso8601
+      if opts[:end_time] and opts[:end_time].respond_to?(:iso8601)
         opts[:end_time] = opts[:end_time].iso8601
       end
 
-      client(region).get_metric_statistics(opts)[:datapoints]
+      CW.get_metric_statistics(opts)[:datapoints]
     end
   end
 end

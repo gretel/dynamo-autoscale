@@ -36,6 +36,14 @@ end
 # Uncomment this and the below RubyProf lines if you want profiling information.
 # RubyProf.start
 
+DynamoAutoscale.poller_class = DynamoAutoscale::RandomDataGenerator
+DynamoAutoscale.poller_opts  = {
+  num_points: 100,
+  start_time: Time.now,
+  provisioned_reads: 600,
+  provisioned_writes: 600,
+}.merge(DynamoAutoscale.poller_opts)
+
 begin
   DynamoAutoscale.poller.run { |table_name, time| Timecop.travel(time) }
 rescue Interrupt
@@ -50,7 +58,7 @@ end
 # Ripl.start binding: binding
 
 DynamoAutoscale.tables.each do |_, table|
-  table.report!
+  table.report! metric: :cost
 
   if Kernel.const_defined?(:GRAPH) and GRAPH
     if path = table.graph!(open: true)

@@ -2,7 +2,7 @@ module DynamoAutoscale
   class ScaleReport
     include DynamoAutoscale::Logger
 
-    TEMPLATE = File.join(DynamoAutoscale.root, 'templates', 'scale_report_email.erb')
+    TEMPLATE = DynamoAutoscale.template_dir('scale_report_email.erb')
 
     def initialize table
       @table = table
@@ -48,7 +48,7 @@ module DynamoAutoscale
 
     def formatted_scale_event(scale_event)
       max_length = max_metric_length(scale_event)
-      
+
       ['reads', 'writes'].map do |type|
         next unless scale_event.has_key? "#{type}_from".to_sym
 

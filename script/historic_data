@@ -37,7 +37,7 @@ DynamoAutoscale.poller.tables.select! do |table|
 end
 
 range.each do |start_day|
-  dir     = File.join(DynamoAutoscale.data_dir, start_day.to_s)
+  dir     = DynamoAutoscale.data_dir(start_day.to_s)
   end_day = start_day + 1.day
 
   FileUtils.mkdir(dir) unless Dir.exists?(dir)

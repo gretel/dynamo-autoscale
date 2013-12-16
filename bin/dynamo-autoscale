@@ -2,66 +2,76 @@
 
 require 'optparse'
 
+USAGE_PATH = File.join(File.dirname(__FILE__), '..', 'USAGE')
+DA         = DynamoAutoscale
+
 # This OptionParser block is here to ensure the queries to --version are
 # actually fast and don't have to go through all of the Ruby requiring lark.
 begin
   OptionParser.new do |opts|
     opts.on('--version', 'Prints the version of this application.') do
       require_relative '../lib/dynamo-autoscale/version'
-      puts DynamoAutoscale::VERSION
+      puts DA::VERSION
       exit 0
     end
 
     opts.on('--help', 'Shows this documentation.') do
-      puts File.read(File.join(File.dirname(__FILE__), '..', 'USAGE'))
+      puts File.read(USAGE_PATH)
       exit 0
     end
   end.parse!
 rescue OptionParser::InvalidOption => e
-  STDERR.puts e.message
-  STDERR.puts
-
-  STDERR.puts File.read(File.join(File.dirname(__FILE__), '..', 'USAGE'))
+  STDERR.puts("#{e.message}\n\n#{File.read(USAGE_PATH)}")
   exit 1
 end
 
-require_relative '../config/environment/common'
+begin
+  require_relative '../config/environment/common'
+rescue DA::Error::InvalidConfigurationError => e
+  STDERR.puts e.message
+  exit 1
+end
 
 
 if ARGV[0]
-  DynamoAutoscale.setup_from_config(ARGV[0])
+  begin
+    DA.setup_from_config(ARGV[0])
+  rescue DA::Error::InvalidConfigurationError => e
+    STDERR.puts e.message
+    exit 1
+  end
 elsif ARGV[0].nil?
-  STDERR.puts File.read(File.join(File.dirname(__FILE__), '..', 'USAGE'))
+  STDERR.puts File.read(USAGE_PATH)
 
   exit 1
 elsif ARGV[0] and !File.exists?(ARGV[0])
   STDERR.puts "Error: The path you specified is to a file that does not exist."
   STDERR.puts
-  STDERR.puts File.read(File.join(File.dirname(__FILE__), '..', 'USAGE'))
+  STDERR.puts File.read(USAGE_PATH)
 
   exit 1
 end
 
-DynamoAutoscale.logger.info "Ensuring tables exist in DynamoDB..."
+DA.logger.info "Ensuring tables exist in DynamoDB..."
 dynamo = AWS::DynamoDB.new
 
-DynamoAutoscale.poller_opts[:tables].select! do |table_name|
+DA.poller_opts[:tables].select! do |table_name|
   if dynamo.tables[table_name].exists?
     true
   else
-    DynamoAutoscale.logger.error "Table #{table_name} does not exist inside your DynamoDB."
+    DA.logger.error "Table #{table_name} does not exist inside your DynamoDB."
     false
   end
 end
 
-DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
+DA.poller_class = DA::CWPoller
 
-unless DynamoAutoscale.config[:dry_run]
-  DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner
+unless DA.config[:dry_run]
+  DA.actioner_class = DA::DynamoActioner
 end
 
-DynamoAutoscale.logger.info "Finished setup. Backdating..."
-DynamoAutoscale.poller.backdate
+DA.logger.info "Finished setup. Backdating..."
+DA.poller.backdate
 
-DynamoAutoscale.logger.info "Starting polling loop..."
-DynamoAutoscale.poller.run
+DA.logger.info "Starting polling loop..."
+DA.poller.run

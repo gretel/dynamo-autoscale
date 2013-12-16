@@ -1,4 +1,5 @@
 require 'logger'
+require 'optparse'
 require 'fileutils'
 require 'time'
 require 'csv'
@@ -18,14 +19,32 @@ require_relative '../../lib/dynamo-autoscale/actioner'
 module DynamoAutoscale
   include DynamoAutoscale::Logger
 
-  DEFAULT_AWS_REGION = 'us-east-1'
-
-  def self.root
-    File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
+  module Error
+    InvalidConfigurationError = Class.new(StandardError)
   end
 
-  def self.data_dir
-    File.join(self.root, 'data')
+  def self.root
+    @@root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
+  end
+
+  def self.root_dir *args
+    File.join(self.root, *args)
+  end
+
+  def self.data_dir *args
+    root_dir 'data', *args
+  end
+
+  def self.config_dir *args
+    root_dir 'config', *args
+  end
+
+  def self.rlib_dir *args
+    root_dir 'rlib', *args
+  end
+
+  def self.template_dir *args
+    root_dir 'templates', *args
   end
 
   def self.config
@@ -36,18 +55,29 @@ module DynamoAutoscale
     @@config = new_config
   end
 
+  def self.require_in_order *files
+    expand_paths(*files).each { |path| require path }
+  end
+
+  def self.load_in_order *files
+    expand_paths(*files).each { |path| load path }
+  end
+
   def self.setup_from_config path, overrides = {}
     logger.debug "[setup] Loading config..."
     self.config = YAML.load_file(path).merge(overrides)
 
     if config[:tables].nil? or config[:tables].empty?
-      STDERR.puts "You need to specify at least one table in your config's " +
-        ":tables section."
-
-      exit 1
+      raise Error::InvalidConfigurationError.new("You need to specify at " +
+        "least one table in your config's :tables section.")
     end
 
-    filters = config[:dry_run] ? DynamoAutoscale::LocalActioner.faux_provisioning_filters : []
+    filters = if config[:dry_run]
+                DynamoAutoscale::LocalActioner.faux_provisioning_filters
+              else
+                []
+              end
+
     if filters.empty?
       logger.debug "[setup] Not running as a dry run. Hitting production Dynamo."
     else
@@ -89,14 +119,11 @@ module DynamoAutoscale
     DynamoAutoscale.load_services
   end
 
-  def self.require_all path
-    Dir[File.join(root, path, '*.rb')].each { |file| require file }
-  end
-
   def self.load_services
-    Dir[File.join(DynamoAutoscale.root, 'config', 'services', '*.rb')].each do |path|
-      load path
-    end
+    load_in_order(
+      'config/services/logger.rb',
+      'config/services/*.rb'
+    )
   end
 
   def self.dispatcher= new_dispatcher
@@ -180,9 +207,33 @@ module DynamoAutoscale
   def self.current_table
     @@current_table ||= nil
   end
+
+  private
+
+  # Expands strings given to it as paths relative to the project root
+  def self.expand_paths *files
+    files.inject([]) do |memo, path|
+      full_path = root_dir(path)
+
+      if (paths = Dir.glob(full_path)).length > 0
+        memo += paths.select { |p| File.file?(p) }
+      elsif File.exist?("#{full_path}.rb")
+        memo << "#{full_path}.rb"
+      elsif File.exist?(full_path)
+        memo << full_path
+      else
+        logger.warn "[load] Could not load file #{full_path}"
+        STDERR.puts Kernel.caller
+        exit 1
+      end
+
+      memo
+    end
+  end
 end
 
-DynamoAutoscale.require_all 'lib/dynamo-autoscale'
-DynamoAutoscale.require_all 'lib/dynamo-autoscale/ext/**'
+DynamoAutoscale.require_in_order(
+  'lib/dynamo-autoscale/**.rb',
+)
 
 DynamoAutoscale.load_services

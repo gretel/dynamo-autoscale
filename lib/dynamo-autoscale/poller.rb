@@ -30,6 +30,11 @@ module DynamoAutoscale
       end.sort!.uniq
 
       times.each do |time|
+        data[:provisioned_writes] ||= {}
+        data[:provisioned_reads]  ||= {}
+        data[:consumed_writes]    ||= {}
+        data[:consumed_reads]     ||= {}
+
         datum = {
           provisioned_writes: data[:provisioned_writes][time],
           provisioned_reads:  data[:provisioned_reads][time],
