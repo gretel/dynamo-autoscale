@@ -78,7 +78,11 @@ tables only.
 :aws:
   :access_key_id:      "your_id"
   :secret_access_key:  "your_key"
-  :dynamo_db_endpoint: "dynamodb.us-east-1.amazonaws.com"
+
+  # Currently, dynamo-autoscale can only operate in one region at a time. If you
+  # want to track tables in multiple regions, you will have to run multiple
+  # instances of dynamo-autoscale.
+  :region:             "us-east-1"
 
 # There are some example rulesets in the rulesets/ directory of this project.
 :ruleset: "path_to_your_ruleset.rb"
