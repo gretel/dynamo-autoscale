@@ -19,4 +19,11 @@ DynamoAutoscale.require_in_order(
 RSpec.configure do |config|
   config.include DynamoAutoscale::Helpers::LoggerHelper
   config.include DynamoAutoscale::Helpers::EnvironmentHelper
+
+  config.before(:each) do
+    DynamoAutoscale.reset_tables
+    DynamoAutoscale.dispatcher = nil
+    DynamoAutoscale.actioners  = nil
+    DynamoAutoscale.poller     = nil
+  end
 end

@@ -180,6 +180,10 @@ module DynamoAutoscale
     end
   end
 
+  def self.actioners= new_actioners
+    @@actioners = new_actioners
+  end
+
   def self.reset_tables
     @@tables = Hash.new { |h, k| h[k] = TableTracker.new(k) }
   end

@@ -30,17 +30,23 @@ module DynamoAutoscale
       end.sort!.uniq
 
       times.each do |time|
-        data[:provisioned_writes] ||= {}
-        data[:provisioned_reads]  ||= {}
-        data[:consumed_writes]    ||= {}
-        data[:consumed_reads]     ||= {}
+        datum = {}
 
-        datum = {
-          provisioned_writes: data[:provisioned_writes][time],
-          provisioned_reads:  data[:provisioned_reads][time],
-          consumed_writes:    data[:consumed_writes][time],
-          consumed_reads:     data[:consumed_reads][time],
-        }
+        if data[:provisioned_writes] and data[:provisioned_writes][time]
+          datum[:provisioned_writes] = data[:provisioned_writes][time]
+        end
+
+        if data[:provisioned_reads] and data[:provisioned_reads][time]
+          datum[:provisioned_reads] = data[:provisioned_reads][time]
+        end
+
+        if data[:consumed_writes] and data[:consumed_writes][time]
+          datum[:consumed_writes] = data[:consumed_writes][time]
+        end
+
+        if data[:consumed_reads] and data[:consumed_reads][time]
+          datum[:consumed_reads] = data[:consumed_reads][time]
+        end
 
         filters.each { |filter| filter.call(table, time, datum) }
 

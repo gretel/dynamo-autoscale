@@ -336,6 +336,11 @@ module DynamoAutoscale
     def report! opts = {}
       opts[:metric] ||= :units
 
+      unless [:cost, :units].include?(opts[:metric])
+        raise ArgumentError.new("The :metric option must be one of :cost or " +
+          ":units")
+      end
+
       if opts[:metric] == :units
         puts "         Table: #{name}"
         puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"

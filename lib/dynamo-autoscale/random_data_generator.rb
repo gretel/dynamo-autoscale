@@ -1,4 +1,7 @@
 module DynamoAutoscale
+  # You can use this class as the DynamoAutoscale.poller global and it will just
+  # generate a given number of random data points at 15 minutes intervals. Nice
+  # for testing purposes.
   class RandomDataGenerator < Poller
     def initialize *args
       super(*args)

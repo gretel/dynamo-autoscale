@@ -51,6 +51,115 @@ describe DynamoAutoscale::TableTracker do
       it      { should == table_name }
     end
 
+    describe "#earliest_data_time" do
+      subject { table.earliest_data_time }
+      it      { should == table.data.keys.first }
+    end
+
+    describe "#total_read_units" do
+      subject { table.total_read_units }
+      it      { should == 1900 }
+    end
+
+    describe "#total_write_units" do
+      subject { table.total_write_units }
+      it      { should == 2600 }
+    end
+
+    describe "#lost_read_units" do
+      subject { table.lost_read_units }
+      it      { should == 0 }
+    end
+
+    describe "#lost_write_units" do
+      subject { table.lost_write_units }
+      it      { should == 0 }
+    end
+
+    describe "#wasted_read_units" do
+      subject { table.wasted_read_units }
+      it      { should == 1820 }
+    end
+
+    describe "#wasted_write_units" do
+      subject { table.wasted_write_units }
+      it      { should == 2480 }
+    end
+
+    context 'AWS region us-east' do
+      before { AWS.config(region: 'us-east-1') }
+
+      describe "#total_read_cost" do
+        subject { table.total_read_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#total_write_cost" do
+        subject { table.total_write_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#total_read_cost" do
+        subject { table.total_read_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#lost_write_cost" do
+        subject { table.lost_write_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#lost_read_cost" do
+        subject { table.lost_read_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#wasted_read_cost" do
+        subject { table.wasted_read_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+
+      describe "#wasted_write_cost" do
+        subject { table.wasted_write_cost }
+        it      { should be_a Float }
+        it      { should be >= 0 }
+      end
+    end
+
+    describe "#lost_write_percent" do
+      subject { table.lost_write_percent }
+      it      { should be_a Float }
+      it      { should be >= 0 }
+      it      { should be <= 100 }
+    end
+
+    describe "#lost_read_percent" do
+      subject { table.lost_read_percent }
+      it      { should be_a Float }
+      it      { should be >= 0 }
+      it      { should be <= 100 }
+    end
+
+    describe "#wasted_read_percent" do
+      subject { table.wasted_read_percent }
+      it      { should be_a Float }
+      it      { should be >= 0 }
+      it      { should be <= 100 }
+    end
+
+    describe "#wasted_write_percent" do
+      subject { table.wasted_write_percent }
+      it      { should be_a Float }
+      it      { should be >= 0 }
+      it      { should be <= 100 }
+    end
+
     describe "#last 3.seconds, :consumed_reads" do
       subject { table.last 3.seconds, :consumed_reads }
       it      { should == [20.0] }
@@ -76,11 +185,65 @@ describe DynamoAutoscale::TableTracker do
       it      { should == 800.0 }
     end
 
+    describe "#last_provisioned_for :writes, at: 3.hours.ago" do
+      subject { table.last_provisioned_for :writes, at: 3.hours.ago }
+      it      { should == nil }
+    end
+
+    describe "#last_consumed_for :reads" do
+      subject { table.last_consumed_for :reads }
+      it      { should == 20.0 }
+    end
+
+    describe "#last_consumed_for :writes, at: now" do
+      subject { table.last_consumed_for :writes, at: now }
+      it      { should == 30.0 }
+    end
+
+    describe "#last_consumed_for :writes, at: 3.minutes.ago" do
+      subject { table.last_consumed_for :writes, at: 3.minutes.ago }
+      it      { should == 30.0 }
+    end
+
+    describe "#last_consumed_for :writes, at: 3.hours.ago" do
+      subject { table.last_consumed_for :writes, at: 3.hours.ago }
+      it      { should == nil }
+    end
+
     describe "#all_times" do
       subject      { table.all_times }
       its(:length) { should == 4 }
 
       specify("is ordered") { subject.should == subject.sort }
+    end
+
+    describe "#to_csv!" do
+      let(:tempfile) { Tempfile.new(table_name) }
+      subject        { File.readlines(table.to_csv!(path: tempfile.path)) }
+      its(:count)    { should == 5 }
+      after          { tempfile.unlink }
+    end
+
+    describe "#report!" do
+      context "metric: :units:" do
+        it "should not error" do
+          table.report! metric: :units
+        end
+      end
+
+      context "metric: :cost" do
+        it "should not error" do
+          table.report! metric: :cost
+        end
+      end
+
+      context "metric: :bananas" do
+        it "should error" do
+          expect do
+            table.report! metric: :bananas
+          end.to raise_error ArgumentError
+        end
+      end
     end
   end
 
