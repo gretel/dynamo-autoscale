@@ -101,6 +101,17 @@ executable to it:
 
     $ dynamo-autoscale path/to/config.yml
 
+### Pre 0.4.1 users
+
+If you used a version of `dynamo-autoscale` prior to v0.4.1 you may have noticed
+odd issues when using a region that wasn't `us-east-1`. This has hopefully been
+fixed from v0.4.1 onwards and you should just be able to set the AWS region in
+your config YAML file and have it "just work".
+
+As a precaution, `dynamo-autoscale` will refuse to run unless an AWS region has
+been explicitly specified. This is to avoid problems with old configurations
+running strangely on versions including and after 0.4.1.
+
 ## Logging
 
 By default, not a whole lot will be logged at first. If you want to be sure that
