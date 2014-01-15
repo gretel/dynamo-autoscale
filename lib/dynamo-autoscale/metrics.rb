@@ -2,7 +2,6 @@ module DynamoAutoscale
   class Metrics
     include DynamoAutoscale::Logger
 
-    CW = AWS::CloudWatch.new
     DEFAULT_OPTS = {
       namespace: 'AWS/DynamoDB',
       period:    300,
@@ -164,7 +163,13 @@ module DynamoAutoscale
         opts[:end_time] = opts[:end_time].iso8601
       end
 
-      CW.get_metric_statistics(opts)[:datapoints]
+      client.get_metric_statistics(opts)[:datapoints]
+    end
+
+    private
+
+    def self.client
+      @@client ||= AWS::CloudWatch.new.client
     end
   end
 end

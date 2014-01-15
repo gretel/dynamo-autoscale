@@ -76,6 +76,7 @@ module DynamoAutoscale
 
     def downscales new_val = nil
       check_day_reset!
+      @downscales = new_val if new_val
       @downscales
     end
 
