@@ -3,7 +3,6 @@
 require 'optparse'
 
 USAGE_PATH = File.join(File.dirname(__FILE__), '..', 'USAGE')
-DA         = DynamoAutoscale
 
 # This OptionParser block is here to ensure the queries to --version are
 # actually fast and don't have to go through all of the Ruby requiring lark.
@@ -11,7 +10,7 @@ begin
   OptionParser.new do |opts|
     opts.on('--version', 'Prints the version of this application.') do
       require_relative '../lib/dynamo-autoscale/version'
-      puts DA::VERSION
+      puts DynamoAutoscale::VERSION
       exit 0
     end
 
@@ -27,11 +26,13 @@ end
 
 begin
   require_relative '../config/environment/common'
-rescue DA::Error::InvalidConfigurationError => e
+rescue DynamoAutoscale::Error::InvalidConfigurationError => e
   STDERR.puts e.message
   exit 1
 end
 
+# Typing out DynamoAutoscale so many times is tedious.
+DA = DynamoAutoscale
 
 if ARGV[0]
   begin
