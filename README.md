@@ -114,11 +114,17 @@ running strangely on versions including and after 0.4.1.
 
 ## Logging
 
-By default, not a whole lot will be logged at first. If you want to be sure that
-the gem is working and doing things, you can run with the `DEBUG` environment
-variable set to `true`:
+`dynamo-autoscale` tries to be quite verbose with its logging, which might seem
+intimidating to first time users. Because this project is dealing rather
+directly with a service that can cost you a lot of money, we want to err on the
+side of caution and be as explicit as possible.
+
+If you require more logging to debug a problem, you can set the `DEBUG`
+environment variable:
 
     $ DEBUG=true dynamo-autoscale <args...>
+
+Keep in mind that this will generate a _lot_ of output.
 
 ## Rulesets
 
