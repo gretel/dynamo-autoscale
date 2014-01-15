@@ -48,7 +48,8 @@
 # The following is an array of tables to monitor and autoscale. You need to
 # specify at least one.
 :tables:
-  - "products-api-production4_dodgy_product_weights"
+  - "my_table1"
+  - "my_table2"
 
 # If you don't want to scale dynamo just yet, you can say that you want to run
 # in "dry run" mode, which will monitor your production databases but all of the
