@@ -9,9 +9,9 @@
 
   # REQUIRED
   #
-  # At the moment, only the us-east-1 region is supported. Changing this may
-  # have strange behvaviour. Don't do it.
-  :dynamo_db_endpoint: "dynamodb.us-east-1.amazonaws.com"
+  # The region that your tables are in. If you have tables in multiple regions,
+  # you'll need to run multiple instances of dynamo-autoscale to handle them.
+  :region: "us-east-1"
 
 :logger:
   # Pretty logging makes the log output colourful. Who doesn't like colours?
