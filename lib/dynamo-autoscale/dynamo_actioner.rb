@@ -92,7 +92,8 @@ module DynamoAutoscale
     end
 
     def self.describe_table table
-      data = AWS::DynamoDB::ClientV2.new.describe_table(table_name: table.name)
+      client = AWS::DynamoDB::Client.new(:api_version => '2012-08-10')
+      data   = client.describe_table(table_name: table.name)
 
       data[:table]
     end
