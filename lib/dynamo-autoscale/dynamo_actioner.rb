@@ -69,13 +69,6 @@ module DynamoAutoscale
 
     def dynamo_scale opts
       dynamo.provision_throughput(opts)
-      # Update alarm as well
-      Alarms.update_alarms(table.name, {
-          previous_reads:  dynamo.read_capacity_units,
-          previous_writes: dynamo.write_capacity_units,
-          new_reads:   opts[:read_capacity_units],
-          new_writes:  opts[:write_capacity_units],
-        })
       return true
     rescue AWS::DynamoDB::Errors::ValidationException => e
       # When you try to set throughput to a negative value or the same value it
