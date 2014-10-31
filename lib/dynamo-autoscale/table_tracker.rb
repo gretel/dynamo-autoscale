@@ -266,10 +266,10 @@ module DynamoAutoscale
     #   UnitCost.read(wasted_read_units) + UnitCost.write(wasted_write_units)
     # end
 
-    def to_csv! opts = {}
-      opts[:path] ||= DynamoAutoscale.root_dir("#{self.name}.csv")
+    def to_csv!
+      path = DynamoAutoscale.root_dir("#{self.name}.csv")
 
-      CSV.open(opts[:path], 'w') do |csv|
+      CSV.open(path, 'w') do |csv|
         csv << [
           "time",
           "provisioned_reads",
@@ -288,20 +288,20 @@ module DynamoAutoscale
           ]
         end
       end
-
-      opts[:path]
+      DynamoAutoscale.logger.debug "Saved CSV file to: #{path}"
+      path
     end
 
-    def graph! opts = {}
-      result = do_graph!(csv_file: to_csv!(path: opts[:data_file]),
-                         output_file: opts[:output_file],
-                         r_file: DynamoAutoscale.rlib_dir(opts[:r_script]))
+    def graph!(r_script = 'dynamodb_graph.r')
+      csv_file = to_csv!
+      output_file = csv_file + '.png'
+      script_file = DynamoAutoscale.rlib_dir(r_script)
 
-      if opts[:open]
-        open_graph result unless result.nil?
-      end
-
-      result
+      path = do_graph!(csv_file: csv_file,
+                         output_file: output_file,
+                         r_file: script_file)
+      DynamoAutoscale.logger.debug "Saved graph file to: #{path}"
+      path
     end
 
     def report! opts = {}
@@ -347,16 +347,6 @@ module DynamoAutoscale
         return nil
       end
       return opts[:output_file]
-    end
-
-    # Helper function which wraps around the 'open' utility on OSX
-    def open_file! file_path
-      begin
-        # TODO: be platform agnostic
-        raise unless system "open #{file_path}"
-      rescue => e
-        logger.error "[table] Exception: #{e.inspect}"
-      end
     end
 
     # Helper function to remove data from an RBTree object keyed on a Time

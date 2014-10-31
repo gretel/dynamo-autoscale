@@ -1,77 +1,352 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
+require 'rubygems'
+require 'commander'
 
-USAGE_PATH = File.join(File.dirname(__FILE__), '..', 'USAGE')
+class Scripts
+  def self.require_common(setup = true)
+    begin
+      require_relative '../config/environment/common'
+    rescue RuntimeError => e
+      raise e
+    end
+    # TODO !hardcoded
+    DynamoAutoscale.setup_from_config(File.realpath('dynamo-autoscale.sample.yml')) if setup
+  end
 
-# This OptionParser block is here to ensure the queries to --version are
-# actually fast and don't have to go through all of the Ruby requiring lark.
-begin
-  OptionParser.new do |opts|
-    opts.on('--version', 'Prints the version of this application.') do
-      require_relative '../lib/dynamo-autoscale/version'
-      puts DynamoAutoscale::VERSION
-      exit 0
+  def self.do_start(options)
+    require_common
+
+    DynamoAutoscale.logger.info "Ensuring tables exist in DynamoDB..."
+
+    dynamo = AWS::DynamoDB.new
+
+    DynamoAutoscale.poller_opts[:tables].select! do |table_name|
+      DynamoAutoscale.logger.error "Table '#{table_name}' does not exist inside your DynamoDB." unless dynamo.tables[table_name].exists?
     end
 
-    opts.on('--help', 'Shows this documentation.') do
-      puts File.read(USAGE_PATH)
-      exit 0
+    DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
+    DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner unless DynamoAutoscale.config[:dry_run]
+    DynamoAutoscale.logger.info "Finished setup. Backdating..."
+    DynamoAutoscale.poller.backdate
+
+    if options.monitor
+      require 'timecop'
+      DynamoAutoscale.logger.warn "Do not use interactive monitoring on production!"
+      begin
+        DynamoAutoscale.logger.info "Starting polling loop..."
+        DynamoAutoscale.pollerrun
+      rescue SignalException, Interrupt => e
+        DynamoAutoscale.logger.error "Exception occurred: #{e.class}:#{e.message}"
+        Ripl.start :binding => binding
+        retry
+      rescue => e
+        # If we error out, print the error and drop into a repl.
+        DynamoAutoscale.logger.error "Exception occurred: #{e.class}:#{e.message}"
+        Ripl.start :binding => binding
+      end
+    else
+      DynamoAutoscale.logger.info "Starting polling loop..."
+      DynamoAutoscale.poller.run
     end
-  end.parse!
-rescue OptionParser::InvalidOption => e
-  STDERR.puts("#{e.message}\n\n#{File.read(USAGE_PATH)}")
-  exit 1
-end
-
-begin
-  require_relative '../config/environment/common'
-rescue RuntimeError => e
-  raise e
-end
-
-# Typing out DynamoAutoscale so many times is tedious.
-DA = DynamoAutoscale
-
-if ARGV[0]
-  begin
-    DA.setup_from_config(ARGV[0])
-  rescue DA::Error::InvalidConfigurationError => e
-    STDERR.puts e.message
-    exit 1
   end
-elsif ARGV[0].nil?
-  STDERR.puts File.read(USAGE_PATH)
 
-  exit 1
-elsif ARGV[0] and !File.exists?(ARGV[0])
-  STDERR.puts "Error: The path you specified is to a file that does not exist."
-  STDERR.puts
-  STDERR.puts File.read(USAGE_PATH)
+  def self.pull_data(options)
+    require_common
 
-  exit 1
-end
+    # This script will fetch the 6 days of previous data from all of the tables that
+    # you have specified in the config passed in as ARGV[0].
+    #
+    # It will store this data into the `data/` directory of this project in a format
+    # that the rest of the tool scripts understands.
 
-DA.logger.info "Ensuring tables exist in DynamoDB..."
-dynamo = AWS::DynamoDB.new
+    dynamo = AWS::DynamoDB.new
+    range  = (Date.today - 5.days).upto(Date.today)
+    DynamoAutoscale.logger.info "Date range: #{range.to_a}"
 
-DA.poller_opts[:tables].select! do |table_name|
-  if dynamo.tables[table_name].exists?
-    true
-  else
-    DA.logger.error "Table #{table_name} does not exist inside your DynamoDB."
-    false
+    # Filter out tables that do not exist in Dynamo.
+    DynamoAutoscale.poller.tables.select! do |table|
+      DynamoAutoscale.logger.error "Table #{table} does not exist, skipping." unless dynamo.tables[table].exists?
+    end
+
+    range.each do |start_day|
+      dir     = DynamoAutoscale.data_dir(start_day.to_s)
+      end_day = start_day + 1.day
+
+      FileUtils.mkdir(dir) unless Dir.exists?(dir)
+
+      DynamoAutoscale.poller_opts[:tables].each do |table|
+        DynamoAutoscale.logger.info "Collecting data for '#{table}' on '#{start_day}'..."
+        File.open(File.join(dir, "#{table}.json"), 'w') do |file|
+          file.write(JSON.pretty_generate(Metrics.all_metrics(table, {
+            period:     5.minutes,
+            start_time: start_day,
+            end_time:   end_day,
+          })))
+        end
+      end
+    end
+  end
+
+  def self.get_wastage(options)
+    require_common
+
+    # This script calculate an approximate "wastage cost" for every table (wastage
+    # cost is defined as provisioned throughout - consumed throughput, so throughput
+    # that was paid for but not used).
+
+    tables      = AWS::DynamoDB.new.tables.to_a.map(&:name)
+    pad         = tables.map(&:length).max
+    total_waste = 0
+    opts        = { period: 1.hour, start_time: 1.hour.ago, end_time: Time.now }
+
+    tables.each do |table|
+      pr = Metrics.provisioned_reads(table, opts).map do |datum|
+        datum[:average]
+      end.inject(:+) || 0.0
+
+      pw = Metrics.provisioned_writes(table, opts).map do |datum|
+        datum[:average]
+      end.inject(:+) || 0.0
+
+      cr = Metrics.consumed_reads(table, opts).map do |datum|
+        datum[:average]
+      end.inject(:+) || 0.0
+
+      cw = Metrics.consumed_writes(table, opts).map do |datum|
+        datum[:average]
+      end.inject(:+) || 0.0
+
+      waste_cost   = UnitCost.read(pr - cr) + UnitCost.write(pw - cw)
+      total_waste += waste_cost
+
+      STDERR.puts "#{table.rjust(pad)}: reads(#{cr.round(4)} / #{pr.round(4)}) " +
+           "writes(#{cw.round(4)} / #{pw.round(4)}), ~$#{waste_cost.round(4)} " +
+           "wasted per hour"
+    end
+
+    STDERR.puts "Total waste cost: ~$#{total_waste.round(4)} per hour"
+  end
+
+  def self.check_ruleset(options)
+    require_common(false)
+
+    begin
+      # TODO: check seems flaky!
+      DynamoAutoscale::RuleSet.new(options.file)
+    rescue ArgumentError => e
+      STDERR.puts "Ruleset '#{options.file}' has errors!"
+      exit 1
+    end
+    STDERR.puts "Ruleset '#{options.file}' seems OK."
+  end
+
+  def self.test_simulate(options)
+    require_common
+    require 'timecop'
+
+    DynamoAutoscale.logger.info "Starting polling loop..."
+    # TODO: no data?
+    DynamoAutoscale.poller.run do |table, time, datum|
+      Timecop.travel(time)
+
+      puts "Event at #{time}: #{datum.pretty_inspect}\n"
+      puts "Press ctrl + d or type 'exit' to step forward in time."
+      puts "Type 'exit!' to exit entirely."
+
+      Ripl.start :binding => binding
+    end
+  end
+
+  def self.test_random(options)
+    require_common
+
+    # This script will locally test the tables and options you have specified in
+    # your config passed in as ARGV[0].
+    #
+    # You will first need to have obtained historic data on the tables in your
+    # config file. To do this, run:
+    #
+    #   $ script/historic_data path/to/config.yml
+    #
+    # This script does not change any throughputs on DynamoDB whatsoever. The
+    # historic script data will hit CloudWatch fairly hard to get its data, though.
+
+    require 'timecop'
+
+    # Uncomment this and the below RubyProf lines if you want profiling information.
+    # RubyProf.start
+
+    DynamoAutoscale.poller_class = DynamoAutoscale::RandomDataGenerator
+    DynamoAutoscale.poller_opts  = {
+      num_points: 100,
+      start_time: Time.now,
+      provisioned_reads: 600,
+      provisioned_writes: 600,
+    }.merge(DynamoAutoscale.poller_opts)
+
+    begin
+      DynamoAutoscale.poller.run { |table_name, time| Timecop.travel(time) }
+    rescue Interrupt
+      Ripl.start binding: binding
+    end
+
+    # Uncomment these and the above RubyProf line if you want profiling information.
+    # printer = RubyProf::FlatPrinter.new(RubyProf.stop)
+    # printer.print(STDOUT, min_percent: 2)
+
+    # Uncomment this if you want to drop into a REPL at the end of the test.
+    # Ripl.start binding: binding
+
+    if options.graph
+      DynamoAutoscale.tables.each do |_, table|
+        table.report! metric: :cost
+        path = table.graph!
+        raise 'Error saving graph.' unless path
+        STDERR.puts "Graph saved to: #{path}"
+        exit -1
+      end
+    end
+  end
+
+  def self.test_email(options)
+    require_common
+
+    table = TableTracker.new("fake_table")
+
+    rulepool = RuleSet.new do
+      reads  last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
+      reads  last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
+
+      writes last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
+      writes last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
+
+      reads  for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
+      reads  for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
+
+      writes for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
+      writes for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
+    end.rules.values.flatten
+
+    20.times do
+      table.tick(rand(1..100).minutes.ago, {
+        :provisioned_reads  => rand(1..1000),
+        :provisioned_writes => rand(1..1000),
+        :consumed_reads     => rand(1..1000),
+        :consumed_writes    => rand(1..1000),
+      })
+    end
+
+    10.times do
+      table.triggered_rules[rand(1..100).minutes.ago] = rulepool[rand(rulepool.length)]
+    end
+
+    10.times do
+      table.scale_events[rand(1..100).minutes.ago] = {
+        reads_from:  rand(1..1000),
+        reads_to:    rand(1..1000),
+        writes_from: rand(1..1000),
+        writes_to:   rand(1..1000),
+      }
+    end
+
+    report = ScaleReport.new(table)
+    STDERR.puts "\nSubject: #{report.email_subject}\n#{report.email_content}\n"
+    unless report.send
+      DynamoAutoscale.logger.error 'Error sending mail.'
+      exit 1
+    end
   end
 end
 
-DA.poller_class = DA::CWPoller
+class Command
+  include Commander::Methods
 
-unless DA.config[:dry_run]
-  DA.actioner_class = DA::DynamoActioner
+  require_relative '../lib/dynamo-autoscale/version.rb'
+
+  def run
+    program :name, $0
+    program :version, DynamoAutoscale::VERSION
+    program :description, 'Command wrapper to manage dynamo-autoscale nicely.'
+    default_command :help
+    global_option('--debug') { $_DEBUG_LOG = true }
+
+    command :check_ruleset do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name} --file [ruleset]"
+      c.description = 'Validate a scaling ruleset.'
+      c.option '--file STRING', String, 'Filename of the rulset to validate'
+      c.action do |args, options|
+        unless options.file
+          say 'option --file is required.'
+          exit 1
+        end
+        ::Scripts::check_ruleset(options)
+      end
+    end
+
+    command :get_wastage do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Calculate what a waste of money this is.'
+      #c.option '--file STRING', String, 'Name of the script to run'
+      c.action do |args, options|
+          ::Scripts::get_wastage(options)
+      end
+    end
+
+    command :test_email do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Try to send notification email.'
+      c.action do |args, options|
+          ::Scripts::test_email(options)
+      end
+    end
+
+    command :start do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Monitor process running.'
+      c.option '--monitor', nil, 'Enable interactive monitoring.'
+      c.action do |args, options|
+          Scripts::do_start(options)
+      end
+    end
+
+    command :test_random do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Run a dry and random test.'
+      c.option '--graph', nil, 'Output a graph.'
+      c.action do |args, options|
+          ::Scripts::test_random(options)
+      end
+    end
+
+    command :test_simulate do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Run a simulation test.'
+      #c.option '--file STRING', String, 'Name of the script to run'
+      c.action do |args, options|
+          ::Scripts::test_simulate(options)
+      end
+    end
+
+    command :pull_data do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Get historic data from the CloudWatch API.'
+      #c.option '--file STRING', String, 'Name of the script to run'
+      c.action do |args, options|
+          ::Scripts::pull_data(options)
+      end
+    end
+
+    begin
+      run!
+    rescue => e
+      if $_DEBUG_LOG
+        STDERR.puts sprintf("%s\n%s", e, e.backtrace.join("\n"))
+      else
+        STDERR.puts "Initialization failed, exception #{e.class}: '#{e.message}'"
+      end
+    end
+  end
 end
 
-DA.logger.info "Finished setup. Backdating..."
-DA.poller.backdate
-
-DA.logger.info "Starting polling loop..."
-DA.poller.run
+Command.new.run if $0 == __FILE__

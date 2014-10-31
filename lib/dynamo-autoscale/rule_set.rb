@@ -1,6 +1,6 @@
 module DynamoAutoscale
   class RuleSet
-    include DynamoAutoscale::Logger
+    # include DynamoAutoscale::Logger
 
     attr_accessor :rules
 

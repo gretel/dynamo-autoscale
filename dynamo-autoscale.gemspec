@@ -30,6 +30,9 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'activesupport'
   gem.add_runtime_dependency 'pony'
   gem.add_runtime_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
+  gem.add_runtime_dependency 'commander'
+  gem.add_runtime_dependency 'oj'
+  gem.add_runtime_dependency 'oj_mimic_json'
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")

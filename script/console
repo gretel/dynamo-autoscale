@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-irb -r ./config/environment/console.rb

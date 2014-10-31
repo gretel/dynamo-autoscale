@@ -12,8 +12,8 @@ require 'erb'
 require 'pony'
 
 require_relative '../../lib/dynamo-autoscale/logger'
-require_relative '../../lib/dynamo-autoscale/poller'
 require_relative '../../lib/dynamo-autoscale/actioner'
+require_relative '../../lib/dynamo-autoscale/poller'
 
 module DynamoAutoscale
   include DynamoAutoscale::Logger
@@ -23,7 +23,7 @@ module DynamoAutoscale
   end
 
   def self.root
-    @@root ||= File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
+    File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
   end
 
   def self.root_dir *args
@@ -63,15 +63,18 @@ module DynamoAutoscale
   end
 
   def self.setup_from_config path, overrides = {}
-    logger.debug "[setup] Loading config..."
+    # TODO: validate yml
     self.config = YAML.load_file(path).merge(overrides)
 
-    if config[:tables].nil? or config[:tables].empty?
+    # TODO: migrate
+    load './config/services/logger.rb'
+
+    if self.config[:tables].nil? or config[:tables].empty?
       raise Error::InvalidConfigurationError.new("You need to specify at " +
         "least one table in your config's :tables section.")
     end
 
-    filters = if config[:dry_run]
+    filters = if self.config[:dry_run]
                 DynamoAutoscale::LocalActioner.faux_provisioning_filters
               else
                 []
@@ -116,7 +119,6 @@ module DynamoAutoscale
     logger.debug "[setup] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
 
     load_in_order(
-      'config/services/logger.rb',
       'config/services/*.rb'
     )
   end
