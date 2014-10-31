@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.summary = "Autoscaling for DynamoDB provisioned throughputs."
   gem.description = "Will automatically monitor DynamoDB tables and scale them based on rules."
 
-  gem.authors  = ['InvisibleHand']
+  gem.authors  = ['InvisibleHand','gretel']
   gem.email    = 'developers@getinvisiblehand.com'
   gem.homepage = 'http://github.com/invisiblehand/dynamo-autoscale'
 
@@ -23,12 +23,12 @@ Gem::Specification.new do |gem|
   gem.requirements << "If you want to graph your tables, you'll need R with " +
     "the ggplot and reshape packages installed."
 
-  gem.add_dependency 'aws-sdk'
-  gem.add_dependency 'rbtree'
-  gem.add_dependency 'ruby-prof'
-  gem.add_dependency 'colored'
-  gem.add_dependency 'activesupport'
-  gem.add_dependency 'pony'
+  gem.add_runtime_dependency 'aws-sdk-v1'
+  gem.add_runtime_dependency 'rbtree', '~> 0.4', '>= 0.4.1'
+  gem.add_runtime_dependency 'ruby-prof'
+  gem.add_runtime_dependency 'colored'
+  gem.add_runtime_dependency 'activesupport'
+  gem.add_runtime_dependency 'pony'
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")
