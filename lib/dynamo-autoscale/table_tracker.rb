@@ -28,7 +28,7 @@ module DynamoAutoscale
     #    :consumed_reads=>342.4033333333333}
     def tick time, datum
       if time < (Time.now.utc - TIME_WINDOW)
-        logger.warn "[table] Attempted to insert data outside of the time window."
+        logger.warn '[table] Attempted to insert data outside of the time window.'
         return
       end
 
@@ -38,14 +38,14 @@ module DynamoAutoscale
         datum[:provisioned_writes] = last_provisioned_for :writes, at: time
 
         if datum[:provisioned_writes]
-          logger.debug "[table] Filled in gap in provisioned writes."
+          logger.debug '[table] Filled in gap in provisioned writes.'
         end
       end
       if datum[:provisioned_reads].nil?
         datum[:provisioned_reads] = last_provisioned_for :reads, at: time
 
         if datum[:provisioned_reads]
-          logger.debug "[table] Filled in gap in provisioned reads."
+          logger.debug '[table] Filled in gap in provisioned reads.'
         end
       end
 
@@ -267,9 +267,9 @@ module DynamoAutoscale
     # end
 
     def to_csv! opts = {}
-      path = opts[:path] or DynamoAutoscale.root_dir("#{self.name}.csv")
+      opts[:path] ||= DynamoAutoscale.root_dir("#{self.name}.csv")
 
-      CSV.open(path, 'w') do |csv|
+      CSV.open(opts[:path], 'w') do |csv|
         csv << [
           "time",
           "provisioned_reads",
@@ -289,56 +289,27 @@ module DynamoAutoscale
         end
       end
 
-      path
+      opts[:path]
     end
 
     def graph! opts = {}
-      data_tmp = File.join(Dir.tmpdir, 'data.csv')
-      png_tmp  = opts[:path] || File.join(Dir.tmpdir, 'graph.png')
-      r_script = DynamoAutoscale.rlib_dir('dynamodb_graph.r')
+      result = do_graph!(csv_file: to_csv!(path: opts[:data_file]),
+                         output_file: opts[:output_file],
+                         r_file: DynamoAutoscale.rlib_dir(opts[:r_script]))
 
-      to_csv!(path: data_tmp)
-
-      `r --no-save --args #{data_tmp} #{png_tmp} < #{r_script}`
-
-      if $? != 0
-        logger.error "[table] Failed to create graph."
-        return false
-      else
-        if opts[:open]
-          `open #{png_tmp}`
-          if $? != 0
-            logger.error "[table] Failed to open graph."
-            return false
-          else
-            return png_tmp
-          end
-        end
+      if opts[:open]
+        open_graph result unless result.nil?
       end
-    end
 
-    def scatterplot_for! metric
-      data_tmp = File.join(Dir.tmpdir, 'data.csv')
-      png_tmp  = File.join(Dir.tmpdir, 'boxplot.png')
-      r_script = DynamoAutoscale.rlib_dir('dynamodb_boxplot.r')
-
-      to_csv!(data_tmp)
-
-      `r --no-save --args #{data_tmp} #{png_tmp} < #{r_script}`
-
-      if $? != 0
-        logger.error "[table] Failed to create graph."
-      else
-        `open #{png_tmp}`
-      end
+      result
     end
 
     def report! opts = {}
       opts[:metric] ||= :units
 
       unless [:cost, :units].include?(opts[:metric])
-        raise ArgumentError.new("The :metric option must be one of :cost or " +
-          ":units")
+        raise ArgumentError.new('The :metric option must be one of :cost or ' +
+          ':units')
       end
 
       if opts[:metric] == :units
@@ -365,6 +336,28 @@ module DynamoAutoscale
     end
 
     private
+
+    # Helper function which wraps around the call of the graphing tool
+    def do_graph! opts = {}
+      begin
+        # TODO: be platform agnostic
+        raise unless system "R --no-save --args #{opts[:csv_file]} #{opts[:output_file]} < #{opts[:r_file]}"
+      rescue => e
+        logger.error "[table] Exception: #{e.inspect}"
+        return nil
+      end
+      return opts[:output_file]
+    end
+
+    # Helper function which wraps around the 'open' utility on OSX
+    def open_file! file_path
+      begin
+        # TODO: be platform agnostic
+        raise unless system "open #{file_path}"
+      rescue => e
+        logger.error "[table] Exception: #{e.inspect}"
+      end
+    end
 
     # Helper function to remove data from an RBTree object keyed on a Time
     # object where the key is outside of the time window defined by the
