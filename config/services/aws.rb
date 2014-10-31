@@ -1,3 +1,5 @@
+require 'aws-sdk-v1'
+
 valid_regions = [
   'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
   'us-east-1', 'us-west-1', 'us-west-2',
