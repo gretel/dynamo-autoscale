@@ -11,6 +11,7 @@ class Scripts
       raise e
     end
     # TODO !hardcoded
+    include DynamoAutoscale
     DynamoAutoscale.setup_from_config(File.realpath('dynamo-autoscale.sample.yml')) if setup
   end
 
