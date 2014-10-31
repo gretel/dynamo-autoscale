@@ -1,23 +1,19 @@
-require 'aws-sdk-v1'
+if config = DynamoAutoscale.config[:aws]
+  valid_regions = [
+    "us-east-1", "us-west-1", "us-west-2", "eu-west-1", "ap-southeast-1",
+    "ap-southeast-2", "ap-northeast-1", "sa-east-1",
+  ]
 
-valid_regions = [
-  'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
-  'us-east-1', 'us-west-1', 'us-west-2',
-  'eu-central-1', 'eu-west-1',
-  'sa-east-1'
-]
+  unless config[:region]
+    raise DynamoAutoscale::Error::InvalidConfigurationError.new("You must " +
+      "specify a :region key in the :aws section of your dynamo-autoscale " +
+      "configuration file!")
+  end
 
-aws_config = DynamoAutoscale.config[:aws]
+  unless valid_regions.include?(config[:region])
+    DynamoAutoscale::Logger.logger.warn "Specified region \"#{config[:region]}\"" +
+      " does not appear in the valid list of regions. Proceed with caution."
+  end
 
-raise DynamoAutoscale::Error::InvalidConfigurationError.new('You must specify a :region key in' +
-  ' the :aws section of your dynamo-autoscale configuration file!') unless aws_config[:region]
-
-DynamoAutoscale::Logger.logger.warn "Specified region '#{aws_config[:region]}'" +
-  ' does not appear in the list of known regions.' +
-  ' Proceed with caution!' unless valid_regions.include?(aws_config[:region])
-
-begin
-  AWS.config(aws_config)
-rescue RuntimeError => e
-  raise e
+  AWS.config(config)
 end
