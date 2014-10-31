@@ -29,6 +29,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'colored'
   gem.add_dependency 'activesupport'
   gem.add_dependency 'pony'
+  gem.add_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")

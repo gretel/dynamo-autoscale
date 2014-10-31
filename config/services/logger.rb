@@ -9,7 +9,13 @@ if config = DynamoAutoscale.config[:logger]
     STDERR.reopen(config[:log_to])
   end
 
-  DynamoAutoscale::Logger.logger = ::Logger.new(STDOUT)
+  if RUBY_VERSION.to_i > 1
+    require 'mono_logger'
+    DynamoAutoscale::Logger.logger = ::MonoLogger.new(STDOUT)
+  else
+    require 'logger'
+    DynamoAutoscale::Logger.logger = ::Logger.new(STDOUT)
+  end
 
   if config[:style] == "pretty"
     DynamoAutoscale::Logger.logger.formatter = DynamoAutoscale::PrettyFormatter.new
