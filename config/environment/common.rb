@@ -116,10 +116,6 @@ module DynamoAutoscale
 
     logger.debug "[setup] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
 
-    DynamoAutoscale.load_services
-  end
-
-  def self.load_services
     load_in_order(
       'config/services/logger.rb',
       'config/services/*.rb'
@@ -239,5 +235,3 @@ end
 DynamoAutoscale.require_in_order(
   'lib/dynamo-autoscale/**.rb',
 )
-
-DynamoAutoscale.load_services

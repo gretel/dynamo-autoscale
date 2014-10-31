@@ -26,9 +26,8 @@ end
 
 begin
   require_relative '../config/environment/common'
-rescue DynamoAutoscale::Error::InvalidConfigurationError => e
-  STDERR.puts e.message
-  exit 1
+rescue RuntimeError => e
+  raise e
 end
 
 # Typing out DynamoAutoscale so many times is tedious.
