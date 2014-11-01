@@ -1,3 +1,6 @@
+require 'erb'
+require 'pony'
+
 module DynamoAutoscale
   class ScaleReport
     include DynamoAutoscale::Logger

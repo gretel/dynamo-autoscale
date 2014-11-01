@@ -1,3 +1,5 @@
+require 'active_support/duration'
+
 module DynamoAutoscale
   class Rule
     include DynamoAutoscale::Logger

@@ -1,3 +1,7 @@
+require 'csv'
+require 'rbtree'
+require 'tempfile'
+
 module DynamoAutoscale
   class TableTracker
     include DynamoAutoscale::Logger

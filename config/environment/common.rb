@@ -1,26 +1,9 @@
-require 'optparse'
-require 'fileutils'
-require 'time'
-require 'csv'
-require 'tempfile'
-require 'aws-sdk'
-require 'active_support/all'
-require 'rbtree'
-require 'colored'
-require 'pp'
-require 'erb'
-require 'pony'
-
 require_relative '../../lib/dynamo-autoscale/logger'
 require_relative '../../lib/dynamo-autoscale/actioner'
 require_relative '../../lib/dynamo-autoscale/poller'
 
 module DynamoAutoscale
   include DynamoAutoscale::Logger
-
-  module Error
-    InvalidConfigurationError = Class.new(StandardError)
-  end
 
   def self.root
     File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
@@ -58,69 +41,53 @@ module DynamoAutoscale
     expand_paths(*files).each { |path| require path }
   end
 
-  def self.load_in_order *files
-    expand_paths(*files).each { |path| load path }
-  end
-
   def self.setup_from_config path, overrides = {}
-    # TODO: validate yml
-    self.config = YAML.load_file(path).merge(overrides)
+    begin
+      self.config = YAML.load_file(path).merge(overrides)
+    rescue => e
+      exit 2
+    end
 
-    # TODO: migrate
     load './config/services/logger.rb'
 
     if self.config[:tables].nil? or config[:tables].empty?
-      raise Error::InvalidConfigurationError.new("You need to specify at " +
-        "least one table in your config's :tables section.")
+      raise RuntimeError.new("You need to configure at " +
+        "least one table in the :tables section.")
     end
 
-    filters = if self.config[:dry_run]
-                DynamoAutoscale::LocalActioner.faux_provisioning_filters
-              else
-                []
-              end
-
-    if filters.empty?
-      logger.debug "[setup] Not running as a dry run. Hitting production Dynamo."
+    if self.config[:dry_run]
+      filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
+      logger.warn "[setup] Running dry. No throughputs will be changed for real."
     else
-      logger.debug "[setup] Running as dry run. No throughputs will be changed."
+      filters = []
     end
 
     DynamoAutoscale.poller_opts = {
       tables: config[:tables],
       filters: filters,
     }
-
     logger.debug "[setup] Poller options are: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
       flush_after: config[:flush_after],
     }
-
     logger.debug "[setup] Actioner options are: #{DynamoAutoscale.actioner_opts}"
 
-    if config[:minimum_throughput]
-      DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput]
-    end
-
-    if config[:maximum_throughput]
-      DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput]
-    end
+    DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
+    DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
 
     logger.debug "[setup] Minimum throughput set to: " +
       "#{DynamoAutoscale::Actioner.minimum_throughput}"
     logger.debug "[setup] Maximum throughput set to: " +
       "#{DynamoAutoscale::Actioner.maximum_throughput}"
 
-    logger.debug "[setup] Ruleset loading from: #{config[:ruleset]}"
+    logger.debug "[setup] Loading ruleset: '#{config[:ruleset]}'"
     DynamoAutoscale.ruleset_location = config[:ruleset]
 
     logger.debug "[setup] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
 
-    load_in_order(
-      'config/services/*.rb'
-    )
+    load './config/services/aws.rb'
   end
 
   def self.dispatcher= new_dispatcher
@@ -220,8 +187,6 @@ module DynamoAutoscale
         memo += paths.select { |p| File.file?(p) }
       elsif File.exist?("#{full_path}.rb")
         memo << "#{full_path}.rb"
-      elsif File.exist?(full_path)
-        memo << full_path
       else
         logger.warn "[load] Could not load file #{full_path}"
         STDERR.puts Kernel.caller
@@ -236,3 +201,6 @@ end
 DynamoAutoscale.require_in_order(
   'lib/dynamo-autoscale/**.rb',
 )
+
+load './config/services/signals.rb'
+

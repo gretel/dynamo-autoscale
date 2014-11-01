@@ -4,7 +4,7 @@ describe 'configuration' do
   it "should crash with no AWS region specified" do
     expect do
       DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH, aws: { })
-    end.to raise_error DynamoAutoscale::Error::InvalidConfigurationError
+    end.to raise_error RuntimeError
   end
 
   it "should warn when using a non standard AWS region" do

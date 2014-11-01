@@ -1,15 +1,13 @@
-config = DynamoAutoscale.config[:logger]
+logger_config = DynamoAutoscale.config[:logger]
 
-raise 'missing configuration' unless config
-
-if config[:sync]
+if logger_config[:sync]
   STDOUT.sync = true
   STDERR.sync = true
 end
 
-if config[:log_to]
-  STDOUT.reopen(config[:log_to])
-  STDERR.reopen(config[:log_to])
+if logger_config[:log_to]
+  STDOUT.reopen(logger_config[:log_to])
+  STDERR.reopen(logger_config[:log_to])
 end
 
 if RUBY_VERSION.to_i > 1
@@ -20,14 +18,14 @@ else
   DynamoAutoscale::Logger.logger = ::Logger.new(STDOUT)
 end
 
-if config[:style] == 'pretty'
+if logger_config[:style] == 'pretty'
   DynamoAutoscale::Logger.logger.formatter = DynamoAutoscale::PrettyFormatter.new
 else
   DynamoAutoscale::Logger.logger.formatter = DynamoAutoscale::StandardFormatter.new
 end
 
-if config[:level]
-  DynamoAutoscale::Logger.logger.level = ::Logger.const_get(config[:level])
+if logger_config[:level]
+  DynamoAutoscale::Logger.logger.level = ::Logger.const_get(logger_config[:level])
 end
 
 if $_DEBUG_LOG

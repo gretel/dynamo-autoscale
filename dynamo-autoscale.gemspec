@@ -23,16 +23,16 @@ Gem::Specification.new do |gem|
   gem.requirements << "If you want to graph your tables, you'll need R with " +
     "the ggplot and reshape packages installed."
 
-  gem.add_runtime_dependency 'aws-sdk-v1'
-  gem.add_runtime_dependency 'rbtree', '~> 0.4', '>= 0.4.1'
-  gem.add_runtime_dependency 'ruby-prof'
-  gem.add_runtime_dependency 'colored'
   gem.add_runtime_dependency 'activesupport'
-  gem.add_runtime_dependency 'pony'
-  gem.add_runtime_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
+  gem.add_runtime_dependency 'aws-sdk-v1'
+  gem.add_runtime_dependency 'colored'
   gem.add_runtime_dependency 'commander'
+  gem.add_runtime_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
   gem.add_runtime_dependency 'oj'
   gem.add_runtime_dependency 'oj_mimic_json'
+  gem.add_runtime_dependency 'pony'
+  gem.add_runtime_dependency 'rbtree', '~> 0.4', '>= 0.4.1'
+  gem.add_runtime_dependency 'ruby-prof'
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")

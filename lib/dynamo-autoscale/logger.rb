@@ -5,7 +5,7 @@ module DynamoAutoscale
     end
 
     def self.logger
-      @@logger ||= ::Logger.new(STDOUT)
+      @@logger ||= DynamoAutoscale::Logger.new(STDOUT)
     end
 
     def logger

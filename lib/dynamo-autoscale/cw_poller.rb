@@ -1,3 +1,6 @@
+require 'time'
+require 'active_support/all'
+
 module DynamoAutoscale
   class CWPoller < Poller
     include DynamoAutoscale::Logger
