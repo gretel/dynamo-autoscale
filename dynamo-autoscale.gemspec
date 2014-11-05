@@ -1,4 +1,4 @@
-require 'date'
+  require 'date'
 require './lib/dynamo-autoscale/version'
 
 Gem::Specification.new do |gem|
