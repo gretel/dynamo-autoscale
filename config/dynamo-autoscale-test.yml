@@ -1,4 +1,4 @@
-# A minimal config file for use in the testing suite.
+# example config file for use in the testing suite.
 
 :logger:
   :level: INFO
@@ -6,6 +6,6 @@
   :style: pretty
 
 :tables:
-  - "just keeping the config loader happy"
+  - "dummy, just keeping the config loader happy"
 
-:dry_run: true # fakes the provisioning data
+:dry_run: true # use mockup provisioning data
