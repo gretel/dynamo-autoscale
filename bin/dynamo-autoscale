@@ -3,7 +3,6 @@
 require 'rubygems'
 require 'commander'
 
-
   require_relative '../lib/dynamo-autoscale/version'
   require_relative '../lib/dynamo-autoscale/cli'
 
@@ -60,6 +59,7 @@ class Command
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Monitor process running.'
       c.option '--config FILE', String, 'Configuration file.'
+      c.option '--dry_run', nil, 'Do not actually touch the API endpoint.'
       c.option '--monitor', nil, 'Enable interactive monitoring.'
       c.action do |args, options|
         unless options.config
