@@ -6,6 +6,9 @@ module DynamoAutoscale
     include DynamoAutoscale::Logger
 
     def initialize(table)
+      # sanity checks
+      raise RuntimeError.new(":email: section not set in configuration file") unless DynamoAutoscale.config[:email]
+      raise RuntimeError.new(":email_template: directive not set in configuration file") unless DynamoAutoscale.config[:email_template]
       email_template = File.realpath(DynamoAutoscale.templates_dir(DynamoAutoscale.config[:email_template]))
       raise RuntimeError.new("Email template file '#{email_template}' does not exist") unless File.exists?(email_template)
 
@@ -39,14 +42,14 @@ module DynamoAutoscale
       })
 
       if result
-        logger.info "[mailer] Mail sent successfully."
+        logger.info "[scale_report] Mail sent successfully."
         result
       else
-        logger.error "[mailer] Failed to send email. Result: #{result.inspect}"
+        logger.error "[scale_report] Failed to send email. Result: #{result.inspect}"
         false
       end
     rescue => e
-      logger.error "[mailer] Encountered an error: #{e.class}:#{e.message}"
+      logger.error "[scale_report] Exception caught: #{e.class}:#{e.message}"
       false
     end
 
