@@ -2,6 +2,7 @@ module DynamoAutoscale
   class Metrics
     include DynamoAutoscale::Logger
 
+    # TODO: be configurable
     DEFAULT_OPTS = {
       namespace: 'AWS/DynamoDB',
       period:    300,
