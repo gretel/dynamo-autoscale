@@ -5,11 +5,12 @@ module DynamoAutoscale
   class ScaleReport
     include DynamoAutoscale::Logger
 
-    TEMPLATE = DynamoAutoscale.template_dir('scale_report_email.erb')
+    def initialize(table)
+      email_template = File.realpath(DynamoAutoscale.templates_dir(DynamoAutoscale.config[:email_template]))
+      raise RuntimeError.new("Email template file '#{email_template}' does not exist") unless File.exists?(email_template)
 
-    def initialize table
       @table = table
-      @erb = ERB.new(File.read(TEMPLATE), nil, '-')
+      @erb = ERB.new(File.read(email_template), nil, '-')
 
       if DynamoAutoscale.config[:dry_run]
         @enabled = false
