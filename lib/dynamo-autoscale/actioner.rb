@@ -142,7 +142,7 @@ module DynamoAutoscale
 
         @provisioned[metric][now] = to
         @upscales += 1
-        ScaleReport.new(table).send
+        ScaleReport.new(table).send unless DynamoAutoscale.config[:email].nil?
       end
 
       return result
@@ -180,7 +180,8 @@ module DynamoAutoscale
         if flush_operations!
           @downscales += 1
           @last_action = Time.now.utc
-          ScaleReport.new(table).send
+
+          ScaleReport.new(table).send unless DynamoAutoscale.config[:email].nil?
 
           return true
         else
