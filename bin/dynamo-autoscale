@@ -10,50 +10,11 @@ class Command
   include Commander::Methods
 
   def run
-    program :name, $0
+    program :name, 'dynamo-autoscale'
     program :version, DynamoAutoscale::VERSION
-    program :description, 'Command wrapper to manage dynamo-autoscale nicely.'
+    program :description, 'Command wrapper to manage dynamo-autoscale in a nice way.'
     default_command :help
-    global_option('--debug') { $_DEBUG_LOG = true }
-
-    command :check_ruleset do |c|
-      c.syntax = "dynamo-autoscale-cmd #{c.name} --file [ruleset]"
-      c.description = 'Validate a scaling ruleset.'
-      c.option '--file STRING', String, 'Filename of the rulset to validate'
-      c.action do |args, options|
-        unless options.file
-          say 'option --file is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(:check_ruleset, options)
-      end
-    end
-
-    command :get_wastage do |c|
-      c.syntax = "dynamo-autoscale-cmd #{c.name}"
-      c.description = 'Calculate what a waste of money this is.'
-      c.option '--config FILE', String, 'Configuration file.'
-      c.action do |args, options|
-        unless options.config
-          say 'option --config FILE is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(:get_wastage, options)
-      end
-    end
-
-    command :test_email do |c|
-      c.syntax = "dynamo-autoscale-cmd #{c.name}"
-      c.description = 'Try to send notification email.'
-      c.option '--config FILE', String, 'Configuration file.'
-      c.action do |args, options|
-        unless options.config
-          say 'option --config FILE is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(:test_email, options)
-      end
-    end
+    global_option('--debug', 'Enable debbuging output for development purposes.') { $_DEBUG_LOG = true }
 
     command :start do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
@@ -70,7 +31,46 @@ class Command
       end
     end
 
-    command :test_random do |c|
+    command 'check_ruleset' do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Validate the scaling ruleset defined.'
+      c.option '--config FILE', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option --config FILE is required.'
+          exit 1
+        end
+        DynamoAutoscale::CLI.run(:check_ruleset, options)
+      end
+    end
+
+    command 'get_wastage' do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Calculate what a waste of money this is.'
+      c.option '--config FILE', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option --config FILE is required.'
+          exit 1
+        end
+        DynamoAutoscale::CLI.run(:get_wastage, options)
+      end
+    end
+
+    command 'test_email' do |c|
+      c.syntax = "dynamo-autoscale-cmd #{c.name}"
+      c.description = 'Try to send notification email.'
+      c.option '--config FILE', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option --config FILE is required.'
+          exit 1
+        end
+        DynamoAutoscale::CLI.run(:test_email, options)
+      end
+    end
+
+    command 'test_random' do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Run a dry and random test.'
       c.option '--graph', nil, 'Output a graph.'
@@ -84,7 +84,7 @@ class Command
       end
     end
 
-    command :test_simulate do |c|
+    command 'test_simulate' do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Run a simulation test.'
       c.option '--config FILE', String, 'Configuration file.'
@@ -97,7 +97,7 @@ class Command
       end
     end
 
-    command :pull_data do |c|
+    command 'pull_data' do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Get historic data from the CloudWatch API.'
       c.option '--config FILE', String, 'Configuration file.'

@@ -25,8 +25,12 @@ module DynamoAutoscale
     root_dir 'rlib', *args
   end
 
-  def self.template_dir *args
+  def self.templates_dir *args
     root_dir 'templates', *args
+  end
+
+  def self.rulesets_dir *args
+    root_dir 'rulesets', *args
   end
 
   def self.config
@@ -64,13 +68,13 @@ module DynamoAutoscale
 
     DynamoAutoscale.poller_opts = {
       tables: config[:tables],
-      filters: filters,
+      filters: filters
     }
     logger.debug "[setup] Poller options are: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
-      flush_after: config[:flush_after],
+      flush_after: config[:flush_after]
     }
     logger.debug "[setup] Actioner options are: #{DynamoAutoscale.actioner_opts}"
 
