@@ -1,4 +1,6 @@
+.bundle
 config/dynamo-autoscale.yml
 data/
-pkg/
 coverage/
+log/
+run/
