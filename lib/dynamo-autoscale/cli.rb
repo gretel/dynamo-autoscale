@@ -5,8 +5,12 @@ module DynamoAutoscale
       require_relative '../../config/environment/common'
 
       raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
-      DynamoAutoscale.setup_from_config(File.realpath(options.config))
 
+      overrides = { :dry_run => options.dry_run, :logger => { :pretty => options.pretty } }
+
+      DynamoAutoscale.setup_from_config(File.realpath(options.config), overrides)
+
+puts DynamoAutoscale.config[:logger][:pretty]
       begin
         self.send(name, options)
       rescue RuntimeError => e
@@ -24,9 +28,6 @@ module DynamoAutoscale
       DynamoAutoscale.poller_opts[:tables].select! do |table_name|
         DynamoAutoscale.logger.error "Table '#{table_name}' does not exist inside your DynamoDB." unless dynamo.tables[table_name].exists?
       end
-
-      # override config file if set on commandline
-      DynamoAutoscale.config[:dry_run] = true if options.dry_run
 
       DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
       DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner unless DynamoAutoscale.config[:dry_run]
