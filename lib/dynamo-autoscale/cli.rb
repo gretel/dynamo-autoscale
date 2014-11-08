@@ -53,6 +53,50 @@ module DynamoAutoscale
       end
     end
 
+    def self.check_email(options)
+      table = TableTracker.new("fake_table")
+
+      rulepool = RuleSet.new do
+        reads  last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
+        reads  last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
+        writes last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
+        writes last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
+        reads  for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
+        reads  for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
+        writes for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
+        writes for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
+      end.rules.values.flatten
+
+      20.times do
+        table.tick(rand(1..100).minutes.ago, {
+          :provisioned_reads  => rand(1..1000),
+          :provisioned_writes => rand(1..1000),
+          :consumed_reads     => rand(1..1000),
+          :consumed_writes    => rand(1..1000)
+        })
+      end
+
+      10.times do
+        table.triggered_rules[rand(1..100).minutes.ago] = rulepool[rand(rulepool.length)]
+      end
+
+      10.times do
+        table.scale_events[rand(1..100).minutes.ago] = {
+          reads_from:  rand(1..1000),
+          reads_to:    rand(1..1000),
+          writes_from: rand(1..1000),
+          writes_to:   rand(1..1000)
+        }
+      end
+
+      report = ScaleReport.new(table)
+      STDERR.puts "\nSubject: #{report.email_subject}\n#{report.email_content}\n"
+      unless report.send
+        DynamoAutoscale.logger.error 'Error sending mail.'
+        exit 1
+      end
+    end
+
     def self.check_ruleset(options)
       require_relative 'rule_set'
 
@@ -66,7 +110,7 @@ module DynamoAutoscale
       STDERR.puts "Ruleset '#{DynamoAutoscale.config[:ruleset]}' seems OK."
     end
 
-    def self.pull_data(options)
+    def self.pull_cw_data(options)
       require 'fileutils'
 
       # This script will fetch the 6 days of previous data from all of the tables that
@@ -103,7 +147,7 @@ module DynamoAutoscale
       end
     end
 
-    def self.get_wastage(options)
+    def self.lament_wastage(options)
       # This script calculate an approximate "wastage cost" for every table (wastage
       # cost is defined as provisioned throughout - consumed throughput, so throughput
       # that was paid for but not used).
@@ -145,7 +189,7 @@ module DynamoAutoscale
       require 'timecop'
 
       DynamoAutoscale.logger.info "Starting polling loop..."
-      # TODO: no data?
+      # TODO: no data = fail?
       DynamoAutoscale.poller.run do |table, time, datum|
         Timecop.travel(time)
 
@@ -206,51 +250,5 @@ module DynamoAutoscale
       end
     end
 
-    def self.test_email(options)
-      table = TableTracker.new("fake_table")
-
-      rulepool = RuleSet.new do
-        reads  last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
-        reads  last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
-
-        writes last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
-        writes last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
-
-        reads  for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
-        reads  for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
-
-        writes for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
-        writes for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
-      end.rules.values.flatten
-
-      20.times do
-        table.tick(rand(1..100).minutes.ago, {
-          :provisioned_reads  => rand(1..1000),
-          :provisioned_writes => rand(1..1000),
-          :consumed_reads     => rand(1..1000),
-          :consumed_writes    => rand(1..1000),
-        })
-      end
-
-      10.times do
-        table.triggered_rules[rand(1..100).minutes.ago] = rulepool[rand(rulepool.length)]
-      end
-
-      10.times do
-        table.scale_events[rand(1..100).minutes.ago] = {
-          reads_from:  rand(1..1000),
-          reads_to:    rand(1..1000),
-          writes_from: rand(1..1000),
-          writes_to:   rand(1..1000),
-        }
-      end
-
-      report = ScaleReport.new(table)
-      STDERR.puts "\nSubject: #{report.email_subject}\n#{report.email_content}\n"
-      unless report.send
-        DynamoAutoscale.logger.error 'Error sending mail.'
-        exit 1
-      end
-    end
   end
 end
