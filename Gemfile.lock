@@ -1,17 +1,19 @@
 PATH
   remote: .
   specs:
-    dynamo-autoscale (0.4.1)
+    dynamo-autoscale (0.4.1.1)
       activesupport
       aws-sdk-v1
       colored
       commander
+      eye
       mono_logger
       oj
       oj_mimic_json
       pony
       rbtree (~> 0.4, >= 0.4.1)
       ruby-prof
+      timecop
 
 GEM
   remote: https://rubygems.org/
@@ -22,30 +24,42 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
-    aws-sdk-v1 (1.57.0)
+    aws-sdk-v1 (1.58.0)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
     bond (0.5.1)
+    celluloid (0.15.2)
+      timers (~> 1.1.0)
+    celluloid-io (0.15.0)
+      celluloid (>= 0.15.0)
+      nio4r (>= 0.5.0)
     coderay (1.1.0)
     colored (1.2)
     commander (4.2.1)
       highline (~> 1.6.11)
     diff-lcs (1.2.5)
     docile (1.1.5)
+    eye (0.6.3)
+      celluloid (~> 0.15.0)
+      celluloid-io (~> 0.15.0)
+      sigar (~> 0.7.2)
+      state_machine
+      thor
     highline (1.6.21)
     i18n (0.6.11)
     json (1.8.1)
-    mail (2.6.1)
+    mail (2.6.3)
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
     mime-types (2.4.3)
-    mini_portile (0.6.0)
+    mini_portile (0.6.1)
     minitest (5.4.2)
     mono_logger (1.1.0)
     multi_json (1.10.1)
-    nokogiri (1.6.3.1)
-      mini_portile (= 0.6.0)
-    oj (2.10.4)
+    nio4r (1.0.1)
+    nokogiri (1.6.4.1)
+      mini_portile (~> 0.6.0)
+    oj (2.11.0)
     oj_mimic_json (1.0.1)
     pony (1.11)
       mail (>= 2.0)
@@ -70,14 +84,18 @@ GEM
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
     ruby-prof (0.15.2)
+    sigar (0.7.3)
     simplecov (0.9.1)
       docile (~> 1.1.0)
       multi_json (~> 1.0)
       simplecov-html (~> 0.8.0)
     simplecov-html (0.8.0)
     slop (3.6.0)
+    state_machine (1.2.0)
+    thor (0.19.1)
     thread_safe (0.3.4)
     timecop (0.7.1)
+    timers (1.1.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
 

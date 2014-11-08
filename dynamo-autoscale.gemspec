@@ -1,4 +1,5 @@
-  require 'date'
+require 'date'
+
 require './lib/dynamo-autoscale/version'
 
 Gem::Specification.new do |gem|
@@ -27,12 +28,15 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'aws-sdk-v1'
   gem.add_runtime_dependency 'colored'
   gem.add_runtime_dependency 'commander'
+  gem.add_runtime_dependency 'eye'
   gem.add_runtime_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
   gem.add_runtime_dependency 'oj'
   gem.add_runtime_dependency 'oj_mimic_json'
   gem.add_runtime_dependency 'pony'
   gem.add_runtime_dependency 'rbtree', '~> 0.4', '>= 0.4.1'
   gem.add_runtime_dependency 'ruby-prof'
+  gem.add_runtime_dependency 'timecop'
+
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")
