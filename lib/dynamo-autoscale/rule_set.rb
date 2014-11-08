@@ -8,12 +8,14 @@ module DynamoAutoscale
       @rules = Hash.new { |h, k| h[k] = [] }
       @current_table = :all
 
-      if path
+      if not path.nil?
         ruleset_path = File.realpath(DynamoAutoscale.rulesets_dir(path))
         raise RuntimeError.new("Rulset file '#{ruleset_path}' does not exist") unless File.exists?(ruleset_path)
         instance_eval(File.read(ruleset_path))
-      elsif block
+      elsif not block.nil?
         instance_eval(&block)
+      else
+        raise RuntimeError.new('Neither a path to ruleset (declared in the configuration file) nor a block has been passed.')
       end
     end
 
