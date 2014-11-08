@@ -4,8 +4,9 @@
   # Here is where you specify your AWS ID and key. It needs to be a pair that
   # can access both CloudWatch and DynamoDB. For exact details on IAM policies,
   # check the project README.
-  :access_key_id:      "your_id"
-  :secret_access_key:  "your_key"
+  # Will try token authentication if unset.
+  :access_key_id:      "secret_id"
+  :secret_access_key:  "secret_key"
 
   # REQUIRED
   #
@@ -13,10 +14,12 @@
   # you'll need to run multiple instances of dynamo-autoscale to handle them.
   :region: "us-east-1"
 
+
+# Setting 'pretty' will enable colorful logging output. Not recommended for production use.
 :logger:
-  # Pretty logging makes the log output colourful. Who doesn't like colours?
-  :style: pretty
+  :pretty: false
   :level: INFO
+
 
 # If you want to receive email reports whenever a scale operation happens, you
 # can specify this email config. If you don't want to receive emails, just
@@ -25,23 +28,30 @@
 # dynamo-autoscale uses Pony to send email, this hash is just given to Pony
 # verbatim. Further documentation on what options Pony accepts can be found on
 # their GitHub: https://github.com/benprew/pony
-:email:
-  :to: "john.doe@example.com"
-  :from: "dynamo-autoscale@example.com"
-  :via: :smtp
-  :via_options:
-    :port: 25
-    :enable_starttls_auto: false
-    :authentication: :plain
-    :address: "mailserver.example.com"
-    :user_name: "user"
-    :password: "password"
+
+# :email:
+#   :to: "john.doe@example.com"
+#   :from: "dynamo-autoscale@example.com"
+#   :via: :smtp
+#   :via_options:
+#     :port: 25
+#     :enable_starttls_auto: false
+#     :authentication: :plain
+#     :address: "mailserver.example.com"
+#     :user_name: "user"
+#     :password: "password"
+
+# The ERB template to be used on sending email.
+
+# :email_template: "scale_report_email.erb"
+
 
 # REQUIRED
 #
 # Specify the path to your ruleset. Further information on the syntax and
 # purpose of rulesets can be found in the README.
-:ruleset: "rulesets/gradual_tail.rb"
+:ruleset: "gradual_tail.rb"
+
 
 # REQUIRED
 #
@@ -51,12 +61,17 @@
   - "my_table1"
   - "my_table2"
 
+
 # If you don't want to scale dynamo just yet, you can say that you want to run
 # in "dry run" mode, which will monitor your production databases but all of the
 # scaling events will only be tracked locally.
 #
 # Very useful for making sure your rules will do the right thing.
+#
+# Do not forget to change this for production use as the CLI allows only
+# enabling --dry-run but not disabling it!
 :dry_run: true
+
 
 # Because you are very limited by how many downscales you have per day, and
 # because downscaling both reads and writes at the same time only counts as a
@@ -65,6 +80,7 @@
 # you turn this one.
 :group_downscales: true
 
+
 # This option only works in conjunction with the above group_downscales option.
 # If a downscale stays queued for a long time, you can specify a timeout and
 # just apply a single read or write downscale after a specified amount of time
@@ -72,6 +88,7 @@
 #
 # Specified in seconds.
 :flush_after: 3600
+
 
 # The following two options are configurable minimums and maximums for
 # provisioned throughputs. Dynamo-autoscale will not go below or above whatever
