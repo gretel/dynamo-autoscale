@@ -7,10 +7,8 @@ module DynamoAutoscale
       raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
 
       overrides = { :dry_run => options.dry_run, :logger => { :pretty => options.pretty } }
-
       DynamoAutoscale.setup_from_config(File.realpath(options.config), overrides)
 
-puts DynamoAutoscale.config[:logger][:pretty]
       begin
         self.send(name, options)
       rescue RuntimeError => e
