@@ -41,14 +41,14 @@
 #     :user_name: "user"
 #     :password: "password"
 
-# The ERB template to be used on sending email.
+# Filename (in 'templates/') of the ERB template to be used on sending email.
 
 # :email_template: "scale_report_email.erb"
 
 
 # REQUIRED
 #
-# Specify the path to your ruleset. Further information on the syntax and
+# Filename (in 'rulesets/') of the ruleset. Further information on the syntax and
 # purpose of rulesets can be found in the README.
 :ruleset: "gradual_tail.rb"
 
