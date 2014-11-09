@@ -1,11 +1,13 @@
-# Eye self-configuration section
+
+# Helpers
 def local_path(*args)
   File.expand_path(File.join(File.dirname(__FILE__), *args))
 end
 
-Eye.config do
-  logger local_path('log', 'supervisor.log')
-end
+# Eye self-configuration section
+# Eye.config do
+#  logger local_path('log', 'supervisor.log')
+# end
 
 # Application
 Eye.application 'dynamo-autoscale' do
