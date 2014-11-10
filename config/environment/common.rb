@@ -52,7 +52,7 @@ module DynamoAutoscale
       exit 2
     end
 
-    load './config/services/logger.rb'
+    DynamoAutoscale.require_in_order('config/services/logger.rb')
 
     if self.config[:tables].nil? or config[:tables].empty?
       raise RuntimeError.new("You need to configure at " +
@@ -91,7 +91,7 @@ module DynamoAutoscale
 
     logger.debug "[setup] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
 
-    load './config/services/aws.rb'
+    DynamoAutoscale.require_in_order('config/services/aws.rb')
   end
 
   def self.dispatcher= new_dispatcher
@@ -204,7 +204,5 @@ end
 
 DynamoAutoscale.require_in_order(
   'lib/dynamo-autoscale/**.rb',
+  'config/services/signals.rb'
 )
-
-load './config/services/signals.rb'
-
