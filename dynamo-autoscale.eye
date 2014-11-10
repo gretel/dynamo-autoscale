@@ -5,9 +5,9 @@ def local_path(*args)
 end
 
 # Eye self-configuration section
-# Eye.config do
-#  logger local_path('log', 'supervisor.log')
-# end
+Eye.config do
+  logger local_path('log', 'supervisor.log')
+end
 
 # Application
 Eye.application 'dynamo-autoscale' do
@@ -20,7 +20,7 @@ Eye.application 'dynamo-autoscale' do
     pid_file local_path('run', 'dynamo-autoscale.pid')
     stdall local_path('log', 'dynamo-autoscale.log')
 
-    start_command "#{local_path('bin', 'dynamic-autoscale')} start --config #{local_path('config', 'dynamo-autoscale.yml')}"
+    start_command "#{local_path('bin', 'dynamic-autoscale')} start --config #{local_path('dynamo-autoscale.yml')}"
     # start_command "#{local_path('bin', 'dynamic-autoscale')} --trace start --debug --config #{local_path('config', 'dynamo-autoscale.yml')}"
 
     stop_signals [:QUIT, 3.seconds, :KILL]
