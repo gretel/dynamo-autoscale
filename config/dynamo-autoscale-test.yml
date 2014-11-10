@@ -1,11 +1,15 @@
-# example config file for use in the testing suite.
-
+:aws:
+  :region: "us-east-1"
 :logger:
+  :pretty: true
   :level: INFO
-  :sync:  true
-  :style: pretty
-
+  :sync: true
+:ruleset: "default.rb"
 :tables:
-  - "dummy, just keeping the config loader happy"
-
-:dry_run: true # use mockup provisioning data
+  - "my_table1"
+  - "my_table2"
+# :dry_run: true
+# :group_downscales: true
+# :flush_after: 3600
+# :minimum_throughput: 10
+# :maximum_throughput: 20000
