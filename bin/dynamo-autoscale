@@ -111,18 +111,19 @@ class Command
       end
     end
 
-    command 'dump_stats' do |c|
-      c.syntax = "dynamo-autoscale-cmd #{c.name}"
-      c.description = 'Send signal to process to let it dump some statistics.'
-      c.option '--config PATH', String, 'Configuration file.'
-      c.action do |args, options|
-        unless options.config
-          say 'option --config PATH is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(c.name, options)
-      end
-    end
+    # command 'dump_stats' do |c|
+    #   c.syntax = "dynamo-autoscale-cmd #{c.name}"
+    #   c.description = 'Send signal to process to let it dump some statistics.'
+    #   c.option '--config PATH', String, 'Configuration file.'
+    #   c.action do |args, options|
+    #     unless options.config
+    #       say 'option --config PATH is required.'
+    #       exit 1
+    #     end
+    #     DynamoAutoscale::CLI.run(c.name, options)
+    #   end
+    # end
+
     begin
       run!
     rescue => e
