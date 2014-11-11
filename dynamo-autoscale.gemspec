@@ -3,7 +3,7 @@ require 'date'
 require './lib/dynamo-autoscale/version'
 
 Gem::Specification.new do |gem|
-  gem.name    = 'dynamo-autoscale'
+  gem.name    = 'dynamo-autoscale-'
   gem.version = DynamoAutoscale::VERSION
   gem.date    = Date.today.to_s
 
@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'colored', '~> 1'
   gem.add_runtime_dependency 'commander', '~> 4'
   gem.add_runtime_dependency 'eye', '~> 0.6'
-  gem.add_runtime_dependency 'mono_logger' unless RUBY_VERSION.to_i < 2
+  gem.add_runtime_dependency 'mono_logger', '~> 1' unless RUBY_VERSION.to_i < 2
   gem.add_runtime_dependency 'oj', '~> 2'
   gem.add_runtime_dependency 'oj_mimic_json', '~> 1'
   gem.add_runtime_dependency 'pony', '~> 1'
