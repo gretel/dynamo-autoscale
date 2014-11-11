@@ -7,3 +7,4 @@ run/
 pkg/
 vendor/
 *.log
+gem_graph.*
