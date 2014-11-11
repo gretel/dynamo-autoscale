@@ -47,11 +47,11 @@ module DynamoAutoscale
       now = Time.now.utc
 
       if now >= (check = (@last_scale_check + 1.day).midnight)
-        logger.info "[scales] New day! Reset scaling counts back to 0."
-        logger.debug "[scales] now: #{now}, comp: #{check}"
+        logger.info "[actioner] New day! Reset scaling counts back to 0."
+        logger.debug "[actioner] now: #{now}, comp: #{check}"
 
         if @downscales < 4
-          logger.warn "[scales] Unused downscales. Used: #{@downscales}"
+          logger.warn "[actioner] Unused downscales. Used: #{@downscales}"
         end
 
         @upscales   = 0
@@ -97,26 +97,26 @@ module DynamoAutoscale
       if from and to > (from * 2)
         to = from * 2
 
-        logger.warn "[#{metric}] Attempted to scale up " +
+        logger.warn "[actioner] [#{metric}] Attempted to scale up " +
           "more than allowed. Capped scale to #{to}."
       end
 
       if to < Actioner.minimum_throughput
         to = Actioner.minimum_throughput
 
-        logger.warn "[#{metric}] Attempted to scale down to " +
+        logger.warn "[actioner] [#{metric}] Attempted to scale down to " +
           "less than minimum throughput. Capped scale to #{to}."
       end
 
       if to > Actioner.maximum_throughput
         to = Actioner.maximum_throughput
 
-        logger.warn "[#{metric}] Attempted to scale up to " +
+        logger.warn "[actioner] [#{metric}] Attempted to scale up to " +
           "greater than maximum throughput. Capped scale to #{to}."
       end
 
       if from and from == to
-        logger.info "[#{metric}] Attempted to scale to same value. Ignoring..."
+        logger.info "[actioner] [#{metric}] Attempted to scale to same value. Ignoring..."
         return false
       end
 
@@ -128,7 +128,7 @@ module DynamoAutoscale
     end
 
     def upscale metric, from, to
-      logger.info "[#{metric}][scaling up] " +
+      logger.notice "[actioner] [#{metric}][g] " +
         "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
 
       now = Time.now.utc
@@ -152,7 +152,7 @@ module DynamoAutoscale
       if @downscales >= 4
         unless @downscale_warn
           @downscale_warn = true
-          logger.warn "[#{metric.to_s.ljust(6)}][scaling failed]" +
+          logger.warn "[actioner] [#{metric.to_s.ljust(6)}][scaling failed]" +
             " Hit upper limit of downward scales per day."
         end
 
@@ -160,10 +160,10 @@ module DynamoAutoscale
       end
 
       if @pending[metric]
-        logger.info "[#{metric}][scaling down] " +
+        logger.notice "[actioner] [#{metric}][scaling down] " +
           "#{@pending[metric]} -> #{to.round(2)} (overwritten pending)"
       else
-        logger.info "[#{metric}][scaling down] " +
+        logger.notice "[actioner] [#{metric}][scaling down] " +
           "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
       end
 
@@ -214,9 +214,9 @@ module DynamoAutoscale
           @pending[:writes] = nil
           @pending[:reads] = nil
 
-          logger.info "[flush] Flushed a read and a write event."
+          logger.info "[actioner] Flushed a read and a write event."
         else
-          logger.error "[flush] Failed to flush a read and write event."
+          logger.error "[actioner] Failed to flush a read and write event."
         end
       elsif @pending[:writes]
         from, to = @pending[:writes]
@@ -226,9 +226,9 @@ module DynamoAutoscale
           table.scale_events[now]    = { writes_from: from, writes_to: to }
           @pending[:writes]          = nil
 
-          logger.info "[flush] Flushed a write event."
+          logger.info "[actioner] Flushed a write event."
         else
-          logger.error "[flush] Failed to flush a write event."
+          logger.error "[actioner] Failed to flush a write event."
         end
       elsif @pending[:reads]
         from, to = @pending[:reads]
@@ -238,9 +238,9 @@ module DynamoAutoscale
           table.scale_events[now]   = { reads_from: from, reads_to: to }
           @pending[:reads]          = nil
 
-          logger.info "[flush] Flushed a read event."
+          logger.info "[actioner] Flushed a read event."
         else
-          logger.error "[flush] Failed to flush a read event."
+          logger.error "[actioner] Failed to flush a read event."
         end
       end
 
@@ -262,12 +262,12 @@ module DynamoAutoscale
 
     def should_flush?
       if @opts[:group_downscales].nil?
-        logger.info "[flush] Downscales are not being grouped. Should flush."
+        logger.info "[actioner] Downscales are not being grouped. Should flush."
         return true
       end
 
       if pending_reads? and pending_writes?
-        logger.info "[flush] Both a read and a write are pending. Should flush."
+        logger.info "[actioner] Both a read and a write are pending. Should flush."
         return true
       end
 
@@ -284,11 +284,11 @@ module DynamoAutoscale
       if (@opts[:flush_after] and @last_action and
         (now > @last_action + @opts[:flush_after]))
 
-        logger.info "[flush] Flush timeout of #{@opts[:flush_after]} reached."
+        logger.info "[actioner] Flush timeout of #{@opts[:flush_after]} reached."
         return true
       end
 
-      logger.info "[flush] Flushing conditions not met. Pending operations: " +
+      logger.info "[actioner] Flushing conditions not met. Pending operations: " +
         "#{@pending[:reads] ? "1 read" : "no reads"}, " +
         "#{@pending[:writes] ? "1 write" : "no writes"}"
 

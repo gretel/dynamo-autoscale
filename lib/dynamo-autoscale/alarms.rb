@@ -50,7 +50,7 @@ module DynamoAutoscale
 
         # The only thing we want to update is the threshold
         update_opts[:threshold] = alarm[:threshold] * scale
-        logger.info "[alarm update] [#{alarm[:alarm_name]}] #{alarm[:threshold]} -> #{update_opts[:threshold]}"
+        logger.info "[alarms] [#{alarm[:alarm_name]}] #{alarm[:threshold]} -> #{update_opts[:threshold]}"
         # Update metric alarm
         client.put_metric_alarm(update_opts)
       end

@@ -47,7 +47,7 @@ module DynamoAutoscale
       return false if time.nil? or datum.nil?
 
       if dynamo.read_capacity_units != datum[:provisioned_reads]
-        logger.error "[actioner] DynamoDB disagrees with CloudWatch on what " +
+        logger.error "[dynamo_actioner] DynamoDB disagrees with CloudWatch on what " +
           "the provisioned reads are. To be on the safe side, operations are " +
           "not being applied."
 
@@ -55,7 +55,7 @@ module DynamoAutoscale
       end
 
       if dynamo.write_capacity_units != datum[:provisioned_writes]
-        logger.error "[actioner] DynamoDB disagrees with CloudWatch on what " +
+        logger.error "[dynamo_actioner] DynamoDB disagrees with CloudWatch on what " +
           "the provisioned writes are. To be on the safe side, operations are " +
           "not being applied."
 
@@ -80,11 +80,11 @@ module DynamoAutoscale
     rescue AWS::DynamoDB::Errors::ValidationException => e
       # When you try to set throughput to a negative value or the same value it
       # was previously you get this.
-      logger.warn "[#{e.class}] #{e.message}"
+      logger.warn "[dynamo_actioner] [#{e.class}] #{e.message}"
       return false
     rescue AWS::DynamoDB::Errors::ResourceInUseException => e
       # When you try to update a table that is being updated you get this.
-      logger.warn "[#{e.class}] #{e.message}"
+      logger.warn "[dynamo_actioner] [#{e.class}] #{e.message}"
       return false
     rescue AWS::DynamoDB::Errors::LimitExceededException => e
       # When you try to increase throughput greater than 2x or you try to
@@ -94,7 +94,7 @@ module DynamoAutoscale
       decreases_today = aws_description[:provisioned_throughput][:number_of_decreases_today]
 
       downscales(decreases_today)
-      logger.warn "[#{e.class}] #{e.message}"
+      logger.warn "[dynamo_actioner] [#{e.class}] #{e.message}"
       return false
     end
 

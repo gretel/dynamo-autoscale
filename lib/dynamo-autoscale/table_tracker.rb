@@ -32,7 +32,7 @@ module DynamoAutoscale
     #    :consumed_reads=>342.4033333333333}
     def tick time, datum
       if time < (Time.now.utc - TIME_WINDOW)
-        logger.warn '[table] Attempted to insert data outside of the time window.'
+        logger.warn '[table_tracker] Attempted to insert data outside of the time window.'
         return
       end
 
@@ -42,14 +42,14 @@ module DynamoAutoscale
         datum[:provisioned_writes] = last_provisioned_for :writes, at: time
 
         if datum[:provisioned_writes]
-          logger.debug '[table] Filled in gap in provisioned writes.'
+          logger.debug '[table_tracker] Filled in gap in provisioned writes.'
         end
       end
       if datum[:provisioned_reads].nil?
         datum[:provisioned_reads] = last_provisioned_for :reads, at: time
 
         if datum[:provisioned_reads]
-          logger.debug '[table] Filled in gap in provisioned reads.'
+          logger.debug '[table_tracker] Filled in gap in provisioned reads.'
         end
       end
 
@@ -292,7 +292,7 @@ module DynamoAutoscale
           ]
         end
       end
-      DynamoAutoscale.logger.debug "Saved CSV file to: #{path}"
+      DynamoAutoscale.logger.debug "[table_tracker] Saved CSV file to: #{path}"
       path
     end
 
@@ -304,7 +304,7 @@ module DynamoAutoscale
       path = do_graph!(csv_file: csv_file,
                          output_file: output_file,
                          r_file: script_file)
-      DynamoAutoscale.logger.debug "Saved graph file to: #{path}"
+      DynamoAutoscale.logger.debug "[table_tracker] Saved graph file to: #{path}"
       path
     end
 
@@ -347,7 +347,7 @@ module DynamoAutoscale
         # TODO: be platform agnostic
         raise unless system "R --no-save --args #{opts[:csv_file]} #{opts[:output_file]} < #{opts[:r_file]}"
       rescue => e
-        logger.error "[table] Exception: #{e.inspect}"
+        logger.error "[table_tracker] Exception: #{e.inspect}"
         return nil
       end
       return opts[:output_file]
@@ -357,7 +357,7 @@ module DynamoAutoscale
     # object where the key is outside of the time window defined by the
     # TIME_WINDOW constant.
     def remove_expired_data! data
-      # logger.debug "[table] Pruning data that may be outside of time window..."
+      logger.debug "[table_tracker] Pruning data that may be out of time window..."
       now = Time.now.utc
       to_delete = data.each.take_while { |key, _| key < (now - TIME_WINDOW) }
       to_delete.each { |key, _| data.delete(key) }

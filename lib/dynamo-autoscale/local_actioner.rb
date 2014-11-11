@@ -32,7 +32,7 @@ module DynamoAutoscale
 
         actioner.provisioned_reads.reverse_each do |rtime, reads|
           if time > rtime
-            logger.debug "[filter] Faked provisioned_reads to be #{reads} at #{time}"
+            logger.debug "[local_actioner] Faked provisioned_reads to be #{reads} at #{time}"
             datum[:provisioned_reads] = reads
             break
           end
@@ -40,7 +40,7 @@ module DynamoAutoscale
 
         actioner.provisioned_writes.reverse_each do |wtime, writes|
           if time > wtime
-            logger.debug "[filter] Faked provisioned_writes to be #{writes} at #{time}"
+            logger.debug "[local_actioner] Faked provisioned_writes to be #{writes} at #{time}"
             datum[:provisioned_writes] = writes
             break
           end
