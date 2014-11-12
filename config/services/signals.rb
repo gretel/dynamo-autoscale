@@ -1,5 +1,6 @@
+# TODO: dump statistics json
 Signal.trap('USR1') do
-  DynamoAutoscale.logger.info "[signal] Caught USR1. Dumping CSV for all tables in #{Dir.pwd}"
+  DynamoAutoscale.logger.info "[signal] Caught USR1. Dumping CSV for all tables to '#{Dir.pwd}'"
 
   DynamoAutoscale.tables.each do |name, table|
     table.to_csv! path: File.join(Dir.pwd, "#{table.name}.csv")
@@ -7,7 +8,7 @@ Signal.trap('USR1') do
 end
 
 Signal.trap('USR2') do
-  DynamoAutoscale.logger.info "[signal] Caught USR2. Dumping graphs for all tables in #{Dir.pwd}"
+  DynamoAutoscale.logger.info "[signal] Caught USR2. Dumping graphs for all tables to '#{Dir.pwd}'"
 
   DynamoAutoscale.tables.each do |name, table|
     # TODO: abstraction

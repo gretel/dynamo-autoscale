@@ -128,7 +128,7 @@ module DynamoAutoscale
     end
 
     def upscale metric, from, to
-      logger.notice "[actioner] [#{metric}][g] " +
+      logger.info "[actioner] [#{metric}][g] " +
         "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
 
       now = Time.now.utc
@@ -160,10 +160,10 @@ module DynamoAutoscale
       end
 
       if @pending[metric]
-        logger.notice "[actioner] [#{metric}][scaling down] " +
+        logger.info "[actioner] [#{metric}][scaling down] " +
           "#{@pending[metric]} -> #{to.round(2)} (overwritten pending)"
       else
-        logger.notice "[actioner] [#{metric}][scaling down] " +
+        logger.info "[actioner] [#{metric}][scaling down] " +
           "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
       end
 

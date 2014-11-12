@@ -19,7 +19,7 @@ module DynamoAutoscale
     private
 
     def self.start(options)
-      DynamoAutoscale.logger.info "[CLI] Ensuring tables exist in DynamoDB..."
+      DynamoAutoscale.logger.debug "[CLI] Ensuring tables exist in DynamoDB..."
 
       dynamo = AWS::DynamoDB.new
 
@@ -29,10 +29,10 @@ module DynamoAutoscale
 
       DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
       DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner unless DynamoAutoscale.config[:dry_run]
-      DynamoAutoscale.logger.info "[CLI] Finished setup. Backdating..."
+      DynamoAutoscale.logger.debug "[CLI] Finished setup. Backdating..."
       DynamoAutoscale.poller.backdate
 
-      DynamoAutoscale.logger.info "[CLI] Starting polling loop..."
+      DynamoAutoscale.logger.info "[CLI] Polling CloudWatch in a loop..."
       if options.monitor
         require 'timecop'
         DynamoAutoscale.logger.warn "[CLI] Do not use '--monitor' on production!"
@@ -130,8 +130,6 @@ module DynamoAutoscale
       range.each do |start_day|
         dir     = DynamoAutoscale.data_dir(start_day.to_s)
         end_day = start_day + 1.day
-
-        FileUtils.mkdir(dir) unless Dir.exists?(dir)
 
         DynamoAutoscale.poller_opts[:tables].each do |table|
           DynamoAutoscale.logger.info "[CLI] Collecting data for '#{table}' on '#{start_day}'..."

@@ -25,7 +25,7 @@ module DynamoAutoscale
               data = JSON.parse(File.read(table_path)).symbolize_keys
 
               if data[:consumed_writes].nil? or data[:consumed_reads].nil?
-                logger.warn "[local_data_poll] Lacking data for table #{table_name}. Skipping."
+                logger.warn "[local_data_poll] Lacking data for table '#{table_name}', skipping."
                 next
               end
 
