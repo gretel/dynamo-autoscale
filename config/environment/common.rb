@@ -14,7 +14,9 @@ module DynamoAutoscale
   end
 
   def self.data_dir *args
-    root_dir 'data', *args
+    # if gem is installed by !user the root dir will no be writable
+    # root_dir 'data', *args
+    File.expand_path(File.join(Dir.pwd, 'data'))
   end
 
   def self.config_dir *args
@@ -61,35 +63,44 @@ module DynamoAutoscale
 
     if self.config[:dry_run]
       filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
-      logger.warn "[setup] Running dry. No throughputs will be changed for real."
+      logger.warn "[common] Running dry. No throughputs will be changed for real."
     else
       filters = []
     end
+
+    raise RuntimeError.new("Data directory '#{Dir.pwd}' is not writable") unless File.writable?(Dir.pwd)
+    begin
+      FileUtils.mkdir(self.data_dir) unless Dir.exists?(self.data_dir)
+    rescue => e
+      raise RuntimeError.new("Unable to create directory: #{self.data_dir} (#{e.inspect})")
+    end
+
+    logger.debug "[common] Data directory: #{self.data_dir}"
 
     DynamoAutoscale.poller_opts = {
       tables: config[:tables],
       filters: filters
     }
-    logger.debug "[setup] Poller options are: #{DynamoAutoscale.poller_opts}"
+    logger.debug "[common] Poller options are: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
       flush_after: config[:flush_after]
     }
-    logger.debug "[setup] Actioner options are: #{DynamoAutoscale.actioner_opts}"
+    logger.debug "[common] Actioner options are: #{DynamoAutoscale.actioner_opts}"
 
     DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
     DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
 
-    logger.debug "[setup] Minimum throughput set to: " +
+    logger.debug "[common] Minimum throughput set to: " +
       "#{DynamoAutoscale::Actioner.minimum_throughput}"
-    logger.debug "[setup] Maximum throughput set to: " +
+    logger.debug "[common] Maximum throughput set to: " +
       "#{DynamoAutoscale::Actioner.maximum_throughput}"
 
-    logger.debug "[setup] Loading ruleset: '#{config[:ruleset]}'"
+    logger.debug "[common] Loading ruleset: '#{config[:ruleset]}'"
     DynamoAutoscale.ruleset_location = config[:ruleset]
 
-    logger.debug "[setup] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
+    logger.debug "[common] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules."
 
     DynamoAutoscale.require_in_order('config/services/aws.rb')
   end
@@ -192,7 +203,7 @@ module DynamoAutoscale
       elsif File.exist?("#{full_path}.rb")
         memo << "#{full_path}.rb"
       else
-        logger.warn "[load] Could not load file #{full_path}"
+        logger.warn "[common] Could not load file: #{full_path}"
         STDERR.puts Kernel.caller
         exit 1
       end
