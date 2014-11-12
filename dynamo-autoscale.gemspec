@@ -3,14 +3,14 @@ require 'date'
 require './lib/dynamo-autoscale/version'
 
 Gem::Specification.new do |gem|
-  gem.name    = 'dynamo-autoscale-'
+  gem.name    = 'dynamo-autoscale'
   gem.version = DynamoAutoscale::VERSION
   gem.date    = Date.today.to_s
 
   gem.summary = "Autoscaling for DynamoDB provisioned throughputs."
   gem.description = "Will automatically monitor DynamoDB tables and scale them based on rules."
 
-  gem.authors  = ['InvisibleHand','gretel']
+  gem.authors  = ['InvisibleHand', 'gretel']
   gem.email    = 'developers@getinvisiblehand.com'
   gem.homepage = 'http://github.com/invisiblehand/dynamo-autoscale'
 
@@ -28,7 +28,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'aws-sdk-v1', '~> 1'
   gem.add_runtime_dependency 'colored', '~> 1'
   gem.add_runtime_dependency 'commander', '~> 4'
-  gem.add_runtime_dependency 'eye', '~> 0.6'
   gem.add_runtime_dependency 'mono_logger', '~> 1' unless RUBY_VERSION.to_i < 2
   gem.add_runtime_dependency 'oj', '~> 2'
   gem.add_runtime_dependency 'oj_mimic_json', '~> 1'
