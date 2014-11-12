@@ -1,8 +1,8 @@
 logger_config = DynamoAutoscale.config[:logger]
 
 if logger_config[:sync]
-  STDOUT.sync = true
-  STDERR.sync = true
+  STDOUT.sync = logger_config[:sync]
+  STDERR.sync = logger_config[:sync]
 end
 
 if logger_config[:log_to]
@@ -29,7 +29,7 @@ if logger_config[:level]
 end
 
 if $_DEBUG_LOG
-  DynamoAutoscale::Logger.logger.warn 'Debugging output enabled. Not recommended for production use!'
+  DynamoAutoscale::Logger.logger.warn '[logger] Debugging output enabled. Not recommended for production use!'
   DynamoAutoscale::Logger.logger.level = ::Logger::DEBUG
   AWS.config(logger: DynamoAutoscale::Logger.logger) if defined? AWS
 end
