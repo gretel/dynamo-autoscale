@@ -26,17 +26,13 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'activesupport', '~> 4.1'
   gem.add_runtime_dependency 'aws-sdk-v1', '~> 1'
-  gem.add_runtime_dependency 'colored', '~> 1'
   gem.add_runtime_dependency 'commander', '~> 4'
-  # gem.add_runtime_dependency 'mono_logger', '~> 1' unless RUBY_VERSION.to_i < 2
   gem.add_runtime_dependency 'oj', '~> 2'
   gem.add_runtime_dependency 'oj_mimic_json', '~> 1'
   gem.add_runtime_dependency 'pony', '~> 1'
   gem.add_runtime_dependency 'rbtree', '~> 0.4', '>= 0.4.1'
   gem.add_runtime_dependency 'timecop', '~> 0.7'
   gem.add_runtime_dependency 'yell', '~> 2'
-
-  # gem.add_runtime_dependency 'ruby-prof'
 
   # ensure the gem is built out of versioned files
   gem.files = `git ls-files -z`.split("\0")
