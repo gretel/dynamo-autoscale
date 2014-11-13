@@ -9,3 +9,4 @@ vendor/
 *.log
 *.gem
 gem_graph.*
+build.sh
