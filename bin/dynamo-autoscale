@@ -6,6 +6,9 @@ require 'commander'
 require_relative '../lib/dynamo-autoscale/version'
 require_relative '../lib/dynamo-autoscale/cli'
 
+DEFAULT_LOG_LEVEL = :info
+DEFAULT_LOG_LEVEL_AWS = :warn
+
 class Command
   include Commander::Methods
 
@@ -13,20 +16,28 @@ class Command
     program :name, 'dynamo-autoscale'
     program :version, DynamoAutoscale::VERSION
     program :description, 'CLI to manage dynamo-autoscale in a nice way.'
-    # default_command :help
-    global_option('--debug', 'Enable debbuging output for development purposes.') { $_DEBUG_LOG = true }
-    global_option('--pretty', 'Enable colorful and possibly pretty output.')
+
+    default_command :help
+
+    global_option('-l', '--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL}'.") { |val| $logger_level = val }
+    global_option('--log_level_aws LEVEL', "Set logging level for the AWS-SDK (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL_AWS}'.") { |val| $logger_level_aws = val }
 
     command :start do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Monitor process running.'
-      c.option '--config PATH', String, 'Configuration file.'
-      c.option '--dry_run', nil, 'Do not actually touch the API endpoint.'
-      c.option '--monitor', nil, 'Enable interactive monitoring.'
+      c.option '-c', '--config PATH', String, 'Configuration file.'
+      c.option '--dry_run', 'Do not actually touch the API endpoint.'
+      c.option '--monitor', 'Enable interactive monitoring.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
+        end
+        # be explicit in regards to running dry
+        if options.dry_run
+          $dry_run = true
+        else
+          $dry_run = false
         end
         DynamoAutoscale::CLI.run(c.name, options)
       end
@@ -38,7 +49,7 @@ class Command
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -51,7 +62,7 @@ class Command
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -61,11 +72,11 @@ class Command
     command 'test_random' do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
       c.description = 'Run a dry and random test.'
-      c.option '--graph', nil, 'Output a graph.'
+      c.option '--graph', 'Output a graph.'
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -78,7 +89,7 @@ class Command
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -91,7 +102,7 @@ class Command
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -104,7 +115,7 @@ class Command
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
-          say 'option --config PATH is required.'
+          say 'option ''--config PATH'' is required.'
           exit 1
         end
         DynamoAutoscale::CLI.run(c.name, options)
@@ -126,15 +137,18 @@ class Command
 
     begin
       run!
+      # enforce logging level defaults if unset
+      $logger_level ||= DEFAULT_LOG_LEVEL
+      $logger_level_aws ||= DEFAULT_LOG_LEVEL_AWS
     rescue => e
-      if $_DEBUG_LOG
+      if $logger_level == :debug
         STDERR.puts sprintf("%s\n%s", e, e.backtrace.join("\n"))
       else
-        STDERR.puts "Exception, doh! (#{e.class}: #{e.message})"
+        STDERR.puts "Exception: #{e.inspect}"
       end
-      exit -2
+      raise e
     end
   end
 end
 
-Command.new.run #if $0 == __FILE__
+Command.new.run # if $0 == __FILE__

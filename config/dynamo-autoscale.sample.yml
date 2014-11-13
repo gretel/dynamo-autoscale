@@ -5,20 +5,14 @@
   # can access both CloudWatch and DynamoDB. For exact details on IAM policies,
   # check the project README.
   # Will try token authentication if unset.
-  :access_key_id:      "secret_id"
-  :secret_access_key:  "secret_key"
+  :access_key_id:
+  :secret_access_key:
 
   # REQUIRED
   #
   # The region that your tables are in. If you have tables in multiple regions,
   # you'll need to run multiple instances of dynamo-autoscale to handle them.
   :region: "us-east-1"
-
-
-# Setting 'pretty' will enable colorful logging output. Not recommended for production use.
-:logger:
-  :pretty: false
-  :level: INFO
 
 
 # If you want to receive email reports whenever a scale operation happens, you
@@ -95,3 +89,5 @@
 # you set here.
 :minimum_throughput: 10
 :maximum_throughput: 20000
+
+# END

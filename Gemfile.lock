@@ -6,12 +6,12 @@ PATH
       aws-sdk-v1 (~> 1)
       colored (~> 1)
       commander (~> 4)
-      mono_logger (~> 1)
       oj (~> 2)
       oj_mimic_json (~> 1)
       pony (~> 1)
       rbtree (~> 0.4, >= 0.4.1)
       timecop (~> 0.7)
+      yell (~> 2)
 
 GEM
   remote: https://rubygems.org/
@@ -41,7 +41,6 @@ GEM
     mime-types (2.4.3)
     mini_portile (0.6.1)
     minitest (5.4.3)
-    mono_logger (1.1.0)
     multi_json (1.10.1)
     nokogiri (1.6.4.1)
       mini_portile (~> 0.6.0)
@@ -80,6 +79,7 @@ GEM
     timecop (0.7.1)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
+    yell (2.0.5)
 
 PLATFORMS
   ruby

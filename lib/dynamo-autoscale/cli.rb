@@ -5,9 +5,9 @@ module DynamoAutoscale
       require_relative '../../config/environment/common'
 
       raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
+      DynamoAutoscale.setup_from_config(File.realpath(options.config), { :dry_run => options.dry_run ||= true })
 
-      overrides = { :dry_run => options.dry_run, :logger => { :pretty => options.pretty } }
-      DynamoAutoscale.setup_from_config(File.realpath(options.config), overrides)
+puts DynamoAutoscale.config
 
       begin
         self.send(name, options)
@@ -19,32 +19,32 @@ module DynamoAutoscale
     private
 
     def self.start(options)
-      DynamoAutoscale.logger.debug "[CLI] Ensuring tables exist in DynamoDB..."
+      DynamoAutoscale.logger.debug "[main] Ensuring tables exist in DynamoDB..."
 
       dynamo = AWS::DynamoDB.new
 
       DynamoAutoscale.poller_opts[:tables].select! do |table_name|
-        DynamoAutoscale.logger.error "[CLI] Table '#{table_name}' does not exist inside your DynamoDB." unless dynamo.tables[table_name].exists?
+        DynamoAutoscale.logger.error "[main] Table '#{table_name}' does not exist inside your DynamoDB." unless dynamo.tables[table_name].exists?
       end
 
       DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
       DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner unless DynamoAutoscale.config[:dry_run]
-      DynamoAutoscale.logger.debug "[CLI] Finished setup. Backdating..."
+      DynamoAutoscale.logger.debug "[main] Finished setup. Backdating..."
       DynamoAutoscale.poller.backdate
 
-      DynamoAutoscale.logger.info "[CLI] Polling CloudWatch in a loop..."
+      DynamoAutoscale.logger.info "[main] Polling CloudWatch in a loop..."
       if options.monitor
         require 'timecop'
-        DynamoAutoscale.logger.warn "[CLI] Do not use '--monitor' on production!"
+        DynamoAutoscale.logger.warn "[main] Do not use '--monitor' on production!"
         begin
           DynamoAutoscale.pollerrun
         rescue SignalException, Interrupt => e
-          DynamoAutoscale.logger.error "[CLI] Exception occurred: #{e.class}:#{e.message}"
+          DynamoAutoscale.logger.error "[main] Exception occurred: #{e.class}:#{e.message}"
           Ripl.start :binding => binding
           retry
         rescue => e
           # If we error out, print the error and drop into a repl.
-          DynamoAutoscale.logger.error "[CLI] Exception occurred: #{e.class}:#{e.message}"
+          DynamoAutoscale.logger.error "[main] Exception occurred: #{e.class}:#{e.message}"
           Ripl.start :binding => binding
         end
       else
@@ -57,13 +57,9 @@ module DynamoAutoscale
 
       rulepool = RuleSet.new do
         reads  last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
-        reads  last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
         writes last: 2, greater_than: "90%", scale: { on: :consumed, by: 1.7 }
-        writes last: 2, greater_than: "80%", scale: { on: :consumed, by: 1.5 }
         reads  for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
-        reads  for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
         writes for:  2.hours, less_than: "20%", min: 10, scale: { on: :consumed, by: 1.8 }
-        writes for:  2.hours, less_than: "30%", min: 10, scale: { on: :consumed, by: 1.8 }
       end.rules.values.flatten
 
       20.times do
@@ -91,7 +87,7 @@ module DynamoAutoscale
       report = ScaleReport.new(table)
       STDERR.puts "\nSubject: #{report.email_subject}\n#{report.email_content}\n"
       unless report.send
-        DynamoAutoscale.logger.error '[CLI] Error sending mail.'
+        DynamoAutoscale.logger.error '[main] Error sending mail.'
         exit 1
       end
     end
@@ -120,11 +116,11 @@ module DynamoAutoscale
 
       dynamo = AWS::DynamoDB.new
       range  = (Date.today - 5.days).upto(Date.today)
-      DynamoAutoscale.logger.info "[CLI] Date range: #{range.to_a}"
+      DynamoAutoscale.logger.info "[main] Date range: #{range.to_a}"
 
       # Filter out tables that do not exist in Dynamo.
       DynamoAutoscale.poller.tables.select! do |table|
-        DynamoAutoscale.logger.error "[CLI] Table #{table} does not exist, skipping." unless dynamo.tables[table].exists?
+        DynamoAutoscale.logger.error "[main] Table #{table} does not exist, skipping." unless dynamo.tables[table].exists?
       end
 
       range.each do |start_day|
@@ -132,7 +128,7 @@ module DynamoAutoscale
         end_day = start_day + 1.day
 
         DynamoAutoscale.poller_opts[:tables].each do |table|
-          DynamoAutoscale.logger.info "[CLI] Collecting data for '#{table}' on '#{start_day}'..."
+          DynamoAutoscale.logger.info "[main] Collecting data for '#{table}' on '#{start_day}'..."
           File.open(File.join(dir, "#{table}.json"), 'w') do |file|
             file.write(JSON.pretty_generate(Metrics.all_metrics(table, {
               period:     5.minutes,
@@ -185,7 +181,7 @@ module DynamoAutoscale
     def self.test_simulate(options)
       require 'timecop'
 
-      DynamoAutoscale.logger.info "[CLI] Starting polling loop..."
+      DynamoAutoscale.logger.info "[main] Starting polling loop..."
       # TODO: no data = fail?
       DynamoAutoscale.poller.run do |table, time, datum|
         Timecop.travel(time)
