@@ -5,9 +5,8 @@ module DynamoAutoscale
       require_relative '../../config/environment/common'
 
       raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
-      DynamoAutoscale.setup_from_config(File.realpath(options.config), { :dry_run => options.dry_run ||= true })
 
-puts DynamoAutoscale.config
+      DynamoAutoscale.setup_from_config(File.realpath(options.config), { :dry_run => options.dry_run ||= true })
 
       begin
         self.send(name, options)
@@ -186,9 +185,9 @@ puts DynamoAutoscale.config
       DynamoAutoscale.poller.run do |table, time, datum|
         Timecop.travel(time)
 
-        puts "Event at #{time}: #{datum.pretty_inspect}\n"
-        puts "Press ctrl + d or type 'exit' to step forward in time."
-        puts "Type 'exit!' to exit entirely."
+        STDERR.puts "Event at #{time}: #{datum.pretty_inspect}\n"
+        STDERR.puts "Press ctrl + d or type 'exit' to step forward in time."
+        STDERR.puts "Type 'exit!' to exit entirely."
 
         Ripl.start :binding => binding
       end

@@ -53,8 +53,7 @@ module DynamoAutoscale
     DynamoAutoscale::Logger.logger = Yell.new do |l|
       l.adapter :stdout, level: "gte.#{$logger_level}"
       l.adapter :stderr, level: [:error, :fatal]
-      # TODO: debug
-      l.adapter :file , "#{Dir.pwd}/output.log" # TODO abtraction?
+      # l.adapter :file , "#{Dir.pwd}/output.log" # DEBUG
     end
 
     logger.debug "[logger] Ready (#{logger.level.inspect})"

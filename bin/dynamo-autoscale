@@ -19,8 +19,9 @@ class Command
 
     default_command :help
 
-    global_option('-l', '--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL}'.") { |val| $logger_level = val }
+    global_option('--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL}'.") { |val| $logger_level = val }
     global_option('--log_level_aws LEVEL', "Set logging level for the AWS-SDK (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL_AWS}'.") { |val| $logger_level_aws = val }
+    global_option('--debug', 'Shortcut for: --log_level debug --log_level_aws debug') { $logger_level = $logger_level_aws = :debug }
 
     command :start do |c|
       c.syntax = "dynamo-autoscale-cmd #{c.name}"
