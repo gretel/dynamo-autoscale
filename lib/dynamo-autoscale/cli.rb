@@ -39,7 +39,7 @@ module DynamoAutoscale
       DynamoAutoscale.logger.debug "[main] Finished setup. Backdating..."
       DynamoAutoscale.poller.backdate
 
-      DynamoAutoscale.logger.info "[main] Polling CloudWatch in a loop..."
+      DynamoAutoscale.logger.info "[main] Starting main loop..."
       DynamoAutoscale.poller.run
     end
 
