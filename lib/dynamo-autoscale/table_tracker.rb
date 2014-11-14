@@ -1,4 +1,5 @@
 require 'csv'
+require 'json'
 require 'rbtree'
 require 'tempfile'
 
@@ -271,7 +272,7 @@ module DynamoAutoscale
     # end
 
     def to_csv!
-      path = DynamoAutoscale.root_dir("#{self.name}.csv")
+      path = DynamoAutoscale.data_dir("#{self.name}.csv")
 
       CSV.open(path, 'w') do |csv|
         csv << [
@@ -292,7 +293,7 @@ module DynamoAutoscale
           ]
         end
       end
-      DynamoAutoscale.logger.debug "[table_tracker] Saved CSV file to: #{path}"
+      DynamoAutoscale.logger.debug "[table_tracker] Dumped CSV file to: #{path}"
       path
     end
 
@@ -304,7 +305,7 @@ module DynamoAutoscale
       path = do_graph!(csv_file: csv_file,
                          output_file: output_file,
                          r_file: script_file)
-      DynamoAutoscale.logger.debug "[table_tracker] Saved graph file to: #{path}"
+      DynamoAutoscale.logger.info "[table_tracker] Saved graph file to: #{path}"
       path
     end
 
@@ -317,25 +318,25 @@ module DynamoAutoscale
       end
 
       if opts[:metric] == :units
-        puts "         Table: #{name}"
-        puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
-        puts " Total r/units: #{total_read_units.round(2)}"
-        puts "  Lost r/units: #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
-        puts "Wasted w/units: #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
-        puts " Total w/units: #{total_write_units.round(2)}"
-        puts "  Lost w/units: #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
-        puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
-        puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
+        STDERR.puts "         Table: #{name}"
+        STDERR.puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
+        STDERR.puts " Total r/units: #{total_read_units.round(2)}"
+        STDERR.puts "  Lost r/units: #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
+        STDERR.puts "Wasted w/units: #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
+        STDERR.puts " Total w/units: #{total_write_units.round(2)}"
+        STDERR.puts "  Lost w/units: #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
+        STDERR.puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
+        STDERR.puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
       elsif opts[:metric] == :cost
-        puts "         Table: #{name}"
-        puts "Wasted r/cost: $#{wasted_read_cost.round(2)} (#{wasted_read_percent.round(2)}%)"
-        puts " Total r/cost: $#{total_read_cost.round(2)}"
-        puts "  Lost r/cost: $#{lost_read_cost.round(2)} (#{lost_read_percent.round(2)}%)"
-        puts "Wasted w/cost: $#{wasted_write_cost.round(2)} (#{wasted_write_percent.round(2)}%)"
-        puts " Total w/cost: $#{total_write_cost.round(2)}"
-        puts "  Lost w/cost: $#{lost_write_cost.round(2)} (#{lost_write_percent.round(2)}%)"
-        puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
-        puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
+        STDERR.puts "         Table: #{name}"
+        STDERR.puts "Wasted r/cost: $#{wasted_read_cost.round(2)} (#{wasted_read_percent.round(2)}%)"
+        STDERR.puts " Total r/cost: $#{total_read_cost.round(2)}"
+        STDERR.puts "  Lost r/cost: $#{lost_read_cost.round(2)} (#{lost_read_percent.round(2)}%)"
+        STDERR.puts "Wasted w/cost: $#{wasted_write_cost.round(2)} (#{wasted_write_percent.round(2)}%)"
+        STDERR.puts " Total w/cost: $#{total_write_cost.round(2)}"
+        STDERR.puts "  Lost w/cost: $#{lost_write_cost.round(2)} (#{lost_write_percent.round(2)}%)"
+        STDERR.puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
+        STDERR.puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
       end
     end
 

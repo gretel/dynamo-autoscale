@@ -32,23 +32,7 @@ module DynamoAutoscale
       DynamoAutoscale.poller.backdate
 
       DynamoAutoscale.logger.info "[main] Polling CloudWatch in a loop..."
-      if options.monitor
-        require 'timecop'
-        DynamoAutoscale.logger.warn "[main] Do not use '--monitor' on production!"
-        begin
-          DynamoAutoscale.pollerrun
-        rescue SignalException, Interrupt => e
-          DynamoAutoscale.logger.error "[main] Exception occurred: #{e.class}:#{e.message}"
-          Ripl.start :binding => binding
-          retry
-        rescue => e
-          # If we error out, print the error and drop into a repl.
-          DynamoAutoscale.logger.error "[main] Exception occurred: #{e.class}:#{e.message}"
-          Ripl.start :binding => binding
-        end
-      else
-        DynamoAutoscale.poller.run
-      end
+      DynamoAutoscale.poller.run
     end
 
     def self.check_email(options)
@@ -115,28 +99,31 @@ module DynamoAutoscale
 
       dynamo = AWS::DynamoDB.new
       range  = (Date.today - 5.days).upto(Date.today)
-      DynamoAutoscale.logger.info "[main] Date range: #{range.to_a}"
+      DynamoAutoscale.logger.info "[main] Going to pull data from CloudWatch for: #{range.to_a}"
 
       # Filter out tables that do not exist in Dynamo.
       DynamoAutoscale.poller.tables.select! do |table|
-        DynamoAutoscale.logger.error "[main] Table #{table} does not exist, skipping." unless dynamo.tables[table].exists?
-      end
+        unless dynamo.tables[table].exists?
+          DynamoAutoscale.logger.warn "[main] Table '#{table}' does not exists, skipping."
+        else
+          range.each do |start_day|
+            dir     = DynamoAutoscale.data_dir(start_day.to_s)
+            end_day = start_day + 1.day
 
-      range.each do |start_day|
-        dir     = DynamoAutoscale.data_dir(start_day.to_s)
-        end_day = start_day + 1.day
-
-        DynamoAutoscale.poller_opts[:tables].each do |table|
-          DynamoAutoscale.logger.info "[main] Collecting data for '#{table}' on '#{start_day}'..."
-          File.open(File.join(dir, "#{table}.json"), 'w') do |file|
-            file.write(JSON.pretty_generate(Metrics.all_metrics(table, {
-              period:     5.minutes,
-              start_time: start_day,
-              end_time:   end_day,
-            })))
+            DynamoAutoscale.poller_opts[:tables].each do |table|
+              DynamoAutoscale.logger.info "[main] Collecting data for '#{table}' on '#{start_day}'..."
+              File.open(File.join(dir, "#{table}.json"), 'w') do |file|
+                file.write(JSON.pretty_generate(Metrics.all_metrics(table, {
+                  period:     5.minutes,
+                  start_time: start_day,
+                  end_time:   end_day,
+                })))
+              end
+            end
           end
         end
       end
+
     end
 
     def self.lament_wastage(options)
@@ -177,21 +164,21 @@ module DynamoAutoscale
       STDERR.puts "Total waste cost: ~$#{total_waste.round(4)} per hour"
     end
 
-    def self.test_simulate(options)
-      require 'timecop'
+    # def self.test_simulate(options)
+    #   require 'timecop'
 
-      DynamoAutoscale.logger.info "[main] Starting polling loop..."
-      # TODO: no data = fail?
-      DynamoAutoscale.poller.run do |table, time, datum|
-        Timecop.travel(time)
+    #   DynamoAutoscale.logger.info "[main] Starting polling loop..."
+    #   # TODO: no data = fail?
+    #   DynamoAutoscale.poller.run do |table, time, datum|
+    #     Timecop.travel(time)
 
-        STDERR.puts "Event at #{time}: #{datum.pretty_inspect}\n"
-        STDERR.puts "Press ctrl + d or type 'exit' to step forward in time."
-        STDERR.puts "Type 'exit!' to exit entirely."
+    #     STDERR.puts "Event at #{time}: #{datum.pretty_inspect}\n"
+    #     STDERR.puts "Press ctrl + d or type 'exit' to step forward in time."
+    #     STDERR.puts "Type 'exit!' to exit entirely."
 
-        Ripl.start :binding => binding
-      end
-    end
+    #     Ripl.start :binding => binding
+    #   end
+    # end
 
     def self.test_random(options)
       # This script will locally test the tables and options you have specified in
@@ -218,11 +205,7 @@ module DynamoAutoscale
         provisioned_writes: 600,
       }.merge(DynamoAutoscale.poller_opts)
 
-      begin
-        DynamoAutoscale.poller.run { |table_name, time| Timecop.travel(time) }
-      rescue Interrupt
-        Ripl.start binding: binding
-      end
+      DynamoAutoscale.poller.run { |table_name, time| Timecop.travel(time) }
 
       # Uncomment these and the above RubyProf line if you want profiling information.
       # printer = RubyProf::FlatPrinter.new(RubyProf.stop)

@@ -6,8 +6,9 @@ ENV['RACK_ENV'] = "test"
 require 'simplecov'
 SimpleCov.start
 
-require_relative 'common'
 require 'timecop'
+
+require_relative 'common'
 
 TEST_CONFIG_PATH = DynamoAutoscale.config_dir('dynamo-autoscale-test.yml')
 DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH)

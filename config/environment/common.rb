@@ -50,7 +50,7 @@ module DynamoAutoscale
   def self.setup_logger(log_level)
     require 'yell'
 
-    DynamoAutoscale::Logger.logger = Yell.new do |l|
+      DynamoAutoscale::Logger.logger = Yell.new do |l|
       l.adapter :stdout, level: "gte.#{$logger_level}"
       l.adapter :stderr, level: [:error, :fatal]
       # l.adapter :file , "#{Dir.pwd}/output.log" # DEBUG
@@ -61,6 +61,8 @@ module DynamoAutoscale
 
   def self.setup_aws(log_level)
     require 'aws-sdk-v1'
+
+    I18n.enforce_available_locales = false
 
     valid_regions = [
       'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
@@ -94,20 +96,7 @@ module DynamoAutoscale
 
     if self.config[:tables].nil? or config[:tables].empty?
       raise RuntimeError.new("You need to configure at " +
-        "least one table in the :tables section.")
-    end
-
-    DynamoAutoscale.setup_logger($logger_level ||= :info)
-
-    logger.info "[common] Version #{DynamoAutoscale::VERSION} starting up..."
-
-    DynamoAutoscale.setup_aws($logger_level_aws ||= :warn)
-
-    unless $dry_run == false
-      filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
-      logger.warn "[common] Running dry! No throughputs will be changed for real."
-    else
-      filters = []
+        "least one table in the :tables section of the configuration file.")
     end
 
     # sanity checks on data directory
@@ -118,57 +107,73 @@ module DynamoAutoscale
       raise RuntimeError.new("Unable to create directory: #{self.data_dir} (#{e.inspect})")
     end
 
-    logger.debug "[common] Data directory: #{self.data_dir}"
+    # enforce logging level defaults if unset
+    $logger_level ||= DEFAULT_LOG_LEVEL
+    $logger_level_aws ||= DEFAULT_LOG_LEVEL_AWS
+    DynamoAutoscale.setup_logger($logger_level)
+
+    logger.info "[common] Version #{DynamoAutoscale::VERSION} (working in '#{self.data_dir}') starting up..."
+
+    DynamoAutoscale.setup_aws($logger_level_aws)
+
+    if $dry_run == true
+      filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
+      logger.warn "[common] Going to run dry! No throughputs will be changed for real."
+    else
+      filters = []
+    end
 
     DynamoAutoscale.poller_opts = {
       tables: config[:tables],
       filters: filters
     }
-    logger.debug "[common] Poller options: #{DynamoAutoscale.poller_opts}"
+    logger.info "[common] Poller options: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
       flush_after: config[:flush_after]
     }
-    logger.debug "[common] Actioner options: #{DynamoAutoscale.actioner_opts}"
+    logger.info "[common] Actioner options: #{DynamoAutoscale.actioner_opts}"
 
     DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
     DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
 
-    logger.debug "[common] Minimum throughput set to: " +
-      "#{DynamoAutoscale::Actioner.minimum_throughput}"
-    logger.debug "[common] Maximum throughput set to: " +
-      "#{DynamoAutoscale::Actioner.maximum_throughput}"
+    logger.info "[common] Minimum throughput: #{DynamoAutoscale::Actioner.minimum_throughput}, maximum throughput: #{DynamoAutoscale::Actioner.maximum_throughput}"
 
     DynamoAutoscale.ruleset_location = config[:ruleset]
-    logger.debug "[common] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules from '#{config[:ruleset]}'."
+    logger.info "[common] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules from '#{config[:ruleset]}'."
 
     DynamoAutoscale.handle_signals
   end
 
   def self.handle_signals
-      # TODO: dump statistics json
     Signal.trap('USR1') do
-      DynamoAutoscale.logger.info "[signal] Caught USR1. Dumping CSV for all tables to '#{Dir.pwd}'"
-
-      DynamoAutoscale.tables.each do |name, table|
-        table.to_csv! path: File.join(Dir.pwd, "#{table.name}.csv")
-      end
+      STDERR.puts "[common] Caught signal USR1!"
+      STDOUT.puts "#{@@tables.to_json}"
     end
 
-    Signal.trap('USR2') do
-      DynamoAutoscale.logger.info "[signal] Caught USR2. Dumping graphs for all tables to '#{Dir.pwd}'"
+    # Signal.trap('USR2') do
+    #   DynamoAutoscale.logger.info "[common] Caught signal USR2. Dumping graphs for all tables to '#{Dir.pwd}'"
 
-      DynamoAutoscale.tables.each do |name, table|
-        # TODO: abstraction
-        table.graph! output_file: File.join(Dir.pwd, "#{table.name}_graph.png"), r_script: 'dynamodb_graph.r'
-        table.graph! output_file: File.join(Dir.pwd, "#{table.name}_scatter.png"), r_script: 'dynamodb_scatterplot.r'
-      end
-    end
+    #   DynamoAutoscale.tables.each do |name, table|
+    #     # TODO: abstraction
+    #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_graph.png"), r_script: 'dynamodb_graph.r'
+    #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_scatter.png"), r_script: 'dynamodb_scatterplot.r'
+    #   end
+    # end
 
     Kernel.trap('EXIT') do
-      DynamoAutoscale.logger.warn "[signal] Caught EXIT. Shutting down..."
+      STDERR.puts 'Shutting down...'
     end
+
+    Kernel.trap('QUIT') do
+      STDERR.puts 'Caught signal QUIT.'
+    end
+
+    Kernel.trap('TERM') do
+      STDERR.puts 'Caught signal TERM.'
+    end
+
   end
 
   def self.dispatcher= new_dispatcher
