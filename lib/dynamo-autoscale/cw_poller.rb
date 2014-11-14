@@ -12,7 +12,7 @@ module DynamoAutoscale
       @tables.each do |table_name|
         table = DynamoAutoscale.tables[table_name]
         dispatch(table, Metrics.all_metrics(table_name, {
-          period:     5.minutes,
+          period:     INTERVAL,
           start_time: now - 6.hours,
           end_time:   now,
         }))
@@ -26,9 +26,9 @@ module DynamoAutoscale
         # polling always happens on interval boundaries regardless of how long
         # polling takes.
         sleep_duration = INTERVAL - ((Time.now.to_i + INTERVAL) % INTERVAL)
-        logger.debug "[cw_poller] Sleeping for #{sleep_duration} seconds..."
+        logger.info "[cw_poller] Sleeping for #{sleep_duration} seconds..."
         sleep(sleep_duration)
-        logger.debug "[cw_poller] Polling CloudWatch data..."
+        logger.info "[cw_poller] Querying CloudWatch..."
         now = Time.now
         tables.each do |table_name|
           # This code will dispatch a message to the listening table that looks
@@ -46,7 +46,7 @@ module DynamoAutoscale
           # There may also be :provisioned_reads and :provisioned_writes
           # depending on how the CloudWatch API feels.
           block.call(table_name, Metrics.all_metrics(table_name, {
-            period:     5.minutes,
+            period:     INTERVAL,
             start_time: now - 20.minutes,
             end_time:   now,
           }))
