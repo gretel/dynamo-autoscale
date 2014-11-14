@@ -22,9 +22,17 @@ module DynamoAutoscale
 
       dynamo = AWS::DynamoDB.new
 
+      have_tables = false
       DynamoAutoscale.poller_opts[:tables].select! do |table_name|
-        DynamoAutoscale.logger.error "[main] Table '#{table_name}' does not exist inside your DynamoDB." unless dynamo.tables[table_name].exists?
+        if dynamo.tables[table_name].exists?
+          DynamoAutoscale.logger.info "[main] Found table '#{table_name}', proceeding."
+          have_tables = true
+        else
+          DynamoAutoscale.logger.warn "[main] Table '#{table_name}' does not exist, skipping."
+        end
       end
+
+      raise RuntimeError.new('At least one table referenced must exist, aborting.') unless have_tables
 
       DynamoAutoscale.poller_class = DynamoAutoscale::CWPoller
       DynamoAutoscale.actioner_class = DynamoAutoscale::DynamoActioner unless DynamoAutoscale.config[:dry_run]

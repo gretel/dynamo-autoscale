@@ -50,7 +50,10 @@ module DynamoAutoscale
   def self.setup_logger(log_level)
     require 'yell'
 
-      DynamoAutoscale::Logger.logger = Yell.new do |l|
+    # dont buffer these, might be important
+    STDERR.sync = true
+
+    DynamoAutoscale::Logger.logger = Yell.new do |l|
       l.adapter :stdout, level: "gte.#{$logger_level}"
       l.adapter :stderr, level: [:error, :fatal]
       # l.adapter :file , "#{Dir.pwd}/output.log" # DEBUG
@@ -62,6 +65,7 @@ module DynamoAutoscale
   def self.setup_aws(log_level)
     require 'aws-sdk-v1'
 
+    # supress warning
     I18n.enforce_available_locales = false
 
     valid_regions = [
@@ -127,7 +131,7 @@ module DynamoAutoscale
       tables: config[:tables],
       filters: filters
     }
-    logger.info "[common] Poller options: #{DynamoAutoscale.poller_opts}"
+    logger.debug "[common] Poller options: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
@@ -138,7 +142,7 @@ module DynamoAutoscale
     DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
     DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
 
-    logger.info "[common] Minimum throughput: #{DynamoAutoscale::Actioner.minimum_throughput}, maximum throughput: #{DynamoAutoscale::Actioner.maximum_throughput}"
+    logger.info "[common] Actioner limits: minimum throughput: #{DynamoAutoscale::Actioner.minimum_throughput}, maximum throughput: #{DynamoAutoscale::Actioner.maximum_throughput}"
 
     DynamoAutoscale.ruleset_location = config[:ruleset]
     logger.info "[common] Loaded #{DynamoAutoscale.rules.rules.values.flatten.count} rules from '#{config[:ruleset]}'."
@@ -148,11 +152,12 @@ module DynamoAutoscale
 
   def self.handle_signals
     Signal.trap('USR1') do
-      STDERR.puts "[common] Caught signal USR1!"
-      STDOUT.puts "#{@@tables.to_json}"
+      STDERR.puts "Caught signal USR1!"
+      STDERR.puts tables.to_json
     end
 
-    # Signal.trap('USR2') do
+    Signal.trap('USR2') do
+      STDERR.puts 'Caught signal USR2! Graphing disabled.'
     #   DynamoAutoscale.logger.info "[common] Caught signal USR2. Dumping graphs for all tables to '#{Dir.pwd}'"
 
     #   DynamoAutoscale.tables.each do |name, table|
@@ -160,18 +165,16 @@ module DynamoAutoscale
     #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_graph.png"), r_script: 'dynamodb_graph.r'
     #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_scatter.png"), r_script: 'dynamodb_scatterplot.r'
     #   end
-    # end
+    end
 
     Kernel.trap('EXIT') do
-      STDERR.puts 'Shutting down...'
+      STDERR.puts 'Bye.'
     end
 
     Kernel.trap('QUIT') do
-      STDERR.puts 'Caught signal QUIT.'
-    end
-
-    Kernel.trap('TERM') do
-      STDERR.puts 'Caught signal TERM.'
+      STDERR.puts 'Caught signal QUIT, shutting down...'
+      sleep 1
+      exit 0
     end
 
   end
