@@ -2,10 +2,10 @@ module DynamoAutoscale
   class Metrics
     include DynamoAutoscale::Logger
 
-    # TODO: be configurable
+    # TODO: abstraction, be configurable
     DEFAULT_OPTS = {
       namespace: 'AWS/DynamoDB',
-      period:    300,
+      period: 5.minutes,
     }
 
     # Returns a hash of timeseries data. Looks a bit like this:

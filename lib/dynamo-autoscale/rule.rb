@@ -119,7 +119,7 @@ module DynamoAutoscale
 
             if @opts[:times].nil? or @count[table.name] == @opts[:times]
               @count[table.name] = 0
-              logger.info "[rule] Triggered rule: #{self.to_english}"
+              logger.info "[rule] Triggered rule: '#{self.to_english}'."
               table.triggered_rules[table.latest_data_time] = self
 
               if scale = @opts[:scale]
@@ -145,33 +145,33 @@ module DynamoAutoscale
     end
 
     def to_english
-      message = "#{@metric} "
+      message = "#{@metric}"
       if @opts[:greater_than]
-        message << "were greater than " << @opts[:greater_than] << " "
+        message << " were greater than " << @opts[:greater_than]
       end
 
       if @opts[:less_than]
-        message << "and " if @opts[:greater_than]
-        message << "were less than " << @opts[:less_than] << " "
+        message << " and" if @opts[:greater_than]
+        message << " were less than " << @opts[:less_than]
       end
 
       if @opts[:for] or @opts[:last]
         val = @opts[:for] || @opts[:last]
 
         if val.is_a? ActiveSupport::Duration
-          message << "for #{val.inspect} "
+          message << " for #{val.inspect}"
         else
-          message << "for #{val} data points "
+          message << " for #{val} data points"
         end
       end
 
       if @opts[:min]
-        message << "with a minimum of #{@opts[:min]} data points "
+        message << " with a minimum of #{@opts[:min]} data points"
       end
 
       if @opts[:max]
-        message << "and " if @opts[:min]
-        message << "with a maximum of #{@opts[:max]} data points "
+        message << " and" if @opts[:min]
+        message << " with a maximum of #{@opts[:max]} data points"
       end
 
       message

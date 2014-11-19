@@ -10,6 +10,7 @@ module DynamoAutoscale
     def backdate
       now = Time.now.utc
       @tables.each do |table_name|
+        logger.debug "[cw_poller] Back-dating table '#{table_name}'..."
         table = DynamoAutoscale.tables[table_name]
         dispatch(table, Metrics.all_metrics(table_name, {
           period:     INTERVAL,

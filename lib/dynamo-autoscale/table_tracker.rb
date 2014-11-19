@@ -43,14 +43,14 @@ module DynamoAutoscale
         datum[:provisioned_writes] = last_provisioned_for :writes, at: time
 
         if datum[:provisioned_writes]
-          logger.debug '[table_tracker] Filled in gap in provisioned writes.'
+          logger.debug '[table_tracker] Filled gap in provisioned writes.'
         end
       end
       if datum[:provisioned_reads].nil?
         datum[:provisioned_reads] = last_provisioned_for :reads, at: time
 
         if datum[:provisioned_reads]
-          logger.debug '[table_tracker] Filled in gap in provisioned reads.'
+          logger.debug '[table_tracker] Filled gap in provisioned reads.'
         end
       end
 
@@ -358,7 +358,7 @@ module DynamoAutoscale
     # object where the key is outside of the time window defined by the
     # TIME_WINDOW constant.
     def remove_expired_data! data
-      logger.debug "[table_tracker] Pruning data that may be out of time window..."
+      # logger.debug "[table_tracker] Pruning data that may be out of time window..."
       now = Time.now.utc
       to_delete = data.each.take_while { |key, _| key < (now - TIME_WINDOW) }
       to_delete.each { |key, _| data.delete(key) }

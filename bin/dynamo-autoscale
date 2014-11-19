@@ -4,7 +4,6 @@ Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
 DEFAULT_LOG_LEVEL = :info
-DEFAULT_LOG_LEVEL_AWS = :warn
 
 require 'rubygems'
 require 'commander'
@@ -19,18 +18,15 @@ class Command
     program :name, 'dynamo-autoscale'
     program :version, DynamoAutoscale::VERSION
     program :description, 'CLI to manage dynamo-autoscale in a nice way.'
-
-    default_command :help
+    # default_command :help
 
     global_option('--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL}'.") { |val| $logger_level = val }
-    global_option('--log_level_aws LEVEL', "Set logging level for the AWS-SDK (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL_AWS}'.") { |val| $logger_level_aws = val }
-    global_option('--debug', 'Shortcut for: --log_level debug --log_level_aws debug') { $logger_level = $logger_level_aws = :debug }
 
     command :start do |c|
       c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Start the program and enter the polling loop.'
+      c.description = 'Start the tool and enter the polling loop.'
       c.option '-c', '--config PATH', String, 'Configuration file.'
-      c.option '--dry_run', 'Do not actually touch the API endpoint.'
+      c.option '-n', '--dry_run', 'Do not actually change the throughput values.'
       c.action do |args, options|
         unless options.config
           say 'option ''--config PATH'' is required.'
@@ -46,9 +42,37 @@ class Command
       end
     end
 
+    command 'check_config' do |c|
+      c.syntax = "dynamo-autoscale #{c.name}"
+      c.description = 'Check the YAML structure of the configuration file.'
+      c.option '--config PATH', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option ''--config PATH'' is required.'
+          exit 1
+        end
+        options.skip_setup = true
+        DynamoAutoscale::CLI.run(c.name, options)
+      end
+    end
+
     command 'check_ruleset' do |c|
       c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Validate the scaling ruleset defined.'
+      c.description = 'Check the scaling ruleset defined.'
+      c.option '--config PATH', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option ''--config PATH'' is required.'
+          exit 1
+        end
+        options.skip_setup = true
+        DynamoAutoscale::CLI.run(c.name, options)
+      end
+    end
+
+    command 'check_email' do |c|
+      c.syntax = "dynamo-autoscale #{c.name}"
+      c.description = 'Try to send a notification email as configured.'
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
@@ -59,9 +83,22 @@ class Command
       end
     end
 
-    command 'check_email' do |c|
+    command 'lament_wastage' do |c|
       c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Try to send notification email.'
+      c.description = 'Calculate what a waste of money this is (not).'
+      c.option '--config PATH', String, 'Configuration file.'
+      c.action do |args, options|
+        unless options.config
+          say 'option ''--config PATH'' is required.'
+          exit 1
+        end
+        DynamoAutoscale::CLI.run(c.name, options)
+      end
+    end
+
+    command 'pull_cw_data' do |c|
+      c.syntax = "dynamo-autoscale #{c.name}"
+      c.description = 'Save historic data from the CloudWatch API in JSON.'
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
@@ -74,7 +111,7 @@ class Command
 
     command 'test_random' do |c|
       c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Run a dry and random test.'
+      c.description = 'Run with random data to see what would happen.'
       # c.option '--graph', 'Output a graph.'
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
@@ -88,33 +125,7 @@ class Command
 
     command 'test_simulate' do |c|
       c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Run a simulation test.'
-      c.option '--config PATH', String, 'Configuration file.'
-      c.action do |args, options|
-        unless options.config
-          say 'option ''--config PATH'' is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(c.name, options)
-      end
-    end
-
-    command 'pull_cw_data' do |c|
-      c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Get historic data from the CloudWatch API.'
-      c.option '--config PATH', String, 'Configuration file.'
-      c.action do |args, options|
-        unless options.config
-          say 'option ''--config PATH'' is required.'
-          exit 1
-        end
-        DynamoAutoscale::CLI.run(c.name, options)
-      end
-    end
-
-    command 'lament_wastage' do |c|
-      c.syntax = "dynamo-autoscale #{c.name}"
-      c.description = 'Calculate what a waste of money this is.'
+      c.description = 'Run a simulation test to check the configuration. Requires historic data available, please use the \'pull_cw_data\' command.'
       c.option '--config PATH', String, 'Configuration file.'
       c.action do |args, options|
         unless options.config
@@ -128,7 +139,8 @@ class Command
     begin
       run!
     rescue => e
-      STDERR.puts "Exception: #{e.inspect}"
+      STDERR.puts "Exception:\n#{e}"
+      STDERR.puts "Backtrace:\n#{e.backtrace.join("\n\t")}" unless e.backtrace.nil?
     end
   end
 end

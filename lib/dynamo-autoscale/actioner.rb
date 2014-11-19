@@ -3,6 +3,9 @@ module DynamoAutoscale
     include DynamoAutoscale::Logger
     attr_accessor :table, :upscales, :downscales
 
+    # TODO: abstraction
+    MAX_DOWNSCALES = 4
+
     def self.minimum_throughput
       @minimum_throughput ||= 10
     end
@@ -47,11 +50,11 @@ module DynamoAutoscale
       now = Time.now.utc
 
       if now >= (check = (@last_scale_check + 1.day).midnight)
-        logger.info "[actioner] New day! Reset scaling counts back to 0."
-        logger.debug "[actioner] now: #{now}, comp: #{check}"
+        logger.info "[actioner] New day! Reset scaling counts back to zero."
+        logger.debug "[actioner] Now: #{now}, Comparison: #{check}"
 
-        if @downscales < 4
-          logger.warn "[actioner] Unused downscales. Used: #{@downscales}"
+        if @downscales < MAX_DOWNSCALES
+          logger.warn "[actioner] Downscales done for today: #{@downscales} of #{MAX_DOWNSCALES}."
         end
 
         @upscales   = 0
@@ -86,9 +89,9 @@ module DynamoAutoscale
       metric = normalize_metric(metric)
       ptime, _ = provisioned_for(metric).last
 
+      # TODO: abstraction
       if ptime and ptime > 2.minutes.ago
-        logger.warn "[actioner] Attempted to scale the same metric more than " +
-          "once in a 2 minute window. Disallowing."
+        logger.warn "[actioner] Scaling allow every two minutes, skipping."
         return false
       end
 
@@ -97,26 +100,23 @@ module DynamoAutoscale
       if from and to > (from * 2)
         to = from * 2
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale up " +
-          "more than allowed. Capped scale to #{to}."
+        logger.warn "[actioner] Attempted to scale up for #{metric} more than allowed. Capped scale to #{to.round(2)}."
       end
 
       if to < Actioner.minimum_throughput
         to = Actioner.minimum_throughput
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale down to " +
-          "less than minimum throughput. Capped scale to #{to}."
+        logger.warn "[actioner] [#{metric}] Attempted to scale down to less than minimum throughput. Capped scale to #{to.round(2)}."
       end
 
       if to > Actioner.maximum_throughput
         to = Actioner.maximum_throughput
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale up to " +
-          "greater than maximum throughput. Capped scale to #{to}."
+        logger.warn "[actioner] [#{metric}] Attempted to scale up to greater than maximum throughput. Capped scale to #{to.round(2)}."
       end
 
       if from and from == to
-        logger.info "[actioner] [#{metric}] Attempted to scale to same value. Ignoring..."
+        logger.debug "[actioner] [#{metric}] Attempted to scale to same value. Ignoring..."
         return false
       end
 
@@ -128,8 +128,7 @@ module DynamoAutoscale
     end
 
     def upscale metric, from, to
-      logger.info "[actioner] [#{metric}][g] " +
-        "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
+      logger.info "[actioner] Setting throughput value for #{metric}: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
 
       now = Time.now.utc
 
@@ -139,9 +138,9 @@ module DynamoAutoscale
           "#{metric}_to".to_sym => to,
           "#{metric}_from".to_sym => from,
         }
-
         @provisioned[metric][now] = to
         @upscales += 1
+
         ScaleReport.new(table).send unless DynamoAutoscale.config[:email].nil?
       end
 
@@ -149,24 +148,19 @@ module DynamoAutoscale
     end
 
     def downscale metric, from, to
-      if @downscales >= 4
+      if @downscales >= MAX_DOWNSCALES
         unless @downscale_warn
           @downscale_warn = true
-          logger.warn "[actioner] [#{metric.to_s.ljust(6)}][scaling failed]" +
-            " Hit upper limit of downward scales per day."
+          logger.error "[actioner] Scaling failed for #{metric}: Limits reached for today."
         end
-
         return false
       end
 
       if @pending[metric]
-        logger.info "[actioner] [#{metric}][scaling down] " +
-          "#{@pending[metric]} -> #{to.round(2)} (overwritten pending)"
+        logger.info "[actioner] Scaling down for #{metric}: #{@pending[metric]} -> #{to.round(2)} (writes pending!)"
       else
-        logger.info "[actioner] [#{metric}][scaling down] " +
-          "#{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
+        logger.info "[actioner] Scaling down for #{metric}: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
       end
-
       queue_operation! metric, from, to
     end
 
@@ -280,12 +274,11 @@ module DynamoAutoscale
 
       if (@opts[:flush_after] and @last_action and
         (now > @last_action + @opts[:flush_after]))
-
-        logger.info "[actioner] Flush timeout of #{@opts[:flush_after]} reached."
+        logger.info "[actioner] Flushing, timeout of #{@opts[:flush_after]} reached."
         return true
       end
 
-      logger.info "[actioner] Flushing conditions not met. Pending operations: " +
+      logger.debug "[actioner] Flushing conditions not met. Pending operations: " +
         "#{@pending[:reads] ? "1 read" : "no reads"}, " +
         "#{@pending[:writes] ? "1 write" : "no writes"}"
 

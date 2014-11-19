@@ -2,6 +2,9 @@ require_relative '../../lib/dynamo-autoscale/logger'
 require_relative '../../lib/dynamo-autoscale/actioner'
 require_relative '../../lib/dynamo-autoscale/poller'
 
+LOGGER_FORMAT = "%d [%5L] %p %h : %m"
+LOGGER_TIME_FORMAT = "%F %T.%L"
+
 module DynamoAutoscale
   include DynamoAutoscale::Logger
 
@@ -53,16 +56,27 @@ module DynamoAutoscale
     # dont buffer these, might be important
     STDERR.sync = true
 
+    # enforce logging level defaults if unset
+    $logger_level ||= DEFAULT_LOG_LEVEL
+
+    # see https://github.com/rudionrails/yell .. https://github.com/rudionrails/yell/wiki/101-formatting-log-messages
     DynamoAutoscale::Logger.logger = Yell.new do |l|
-      l.adapter :stdout, level: "gte.#{$logger_level}"
-      l.adapter :stderr, level: [:error, :fatal]
-      # l.adapter :file , "#{Dir.pwd}/output.log" # DEBUG
+      l.adapter :stdout, level: "gte.#{$logger_level}", format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
+      l.adapter :stderr, level: [:error, :fatal], format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
     end
 
     logger.debug "[logger] Ready (#{logger.level.inspect})"
   end
 
-  def self.setup_aws(log_level)
+  def self.load_config path, overrides = {}
+    begin
+      self.config = YAML.load_file(path).merge(overrides)
+    rescue => e
+      raise RuntimeError.new("Error loading configuration (#{e})")
+    end
+  end
+
+  def self.setup_aws
     require 'aws-sdk-v1'
 
     # supress warning
@@ -75,7 +89,7 @@ module DynamoAutoscale
       'sa-east-1'
     ]
 
-    aws_config = DynamoAutoscale.config[:aws]
+    aws_config = DynamoAutoscale.config[:aws].merge(:logger => DynamoAutoscale.logger, :log_level => :debug)
 
     raise DynamoAutoscale::Error::InvalidConfigurationError.new('You must specify a :region key in' +
       ' the :aws section of your dynamo-autoscale configuration file!') unless aws_config[:region]
@@ -85,19 +99,13 @@ module DynamoAutoscale
       ' Proceed with caution!' unless valid_regions.include?(aws_config[:region])
 
     begin
-      AWS.config(aws_config.merge!(:logger => DynamoAutoscale::Logger.logger, :log_level => :debug))
+      AWS.config(aws_config)
     rescue RuntimeError => e
       raise e
     end
   end
 
-  def self.setup_from_config path, overrides = {}
-    begin
-      self.config = YAML.load_file(path).merge(overrides)
-    rescue => e
-      raise RuntimeError.new("Error loading configuration (#{e.inspect})")
-    end
-
+  def self.setup
     if self.config[:tables].nil? or config[:tables].empty?
       raise RuntimeError.new("You need to configure at " +
         "least one table in the :tables section of the configuration file.")
@@ -111,37 +119,41 @@ module DynamoAutoscale
       raise RuntimeError.new("Unable to create directory: #{self.data_dir} (#{e.inspect})")
     end
 
-    # enforce logging level defaults if unset
-    $logger_level ||= DEFAULT_LOG_LEVEL
-    $logger_level_aws ||= DEFAULT_LOG_LEVEL_AWS
-    DynamoAutoscale.setup_logger($logger_level)
+    # connect to the thing in the sky
+    DynamoAutoscale.setup_aws
 
-    logger.info "[common] Version #{DynamoAutoscale::VERSION} (working in '#{self.data_dir}') starting up..."
-
-    DynamoAutoscale.setup_aws($logger_level_aws)
-
-    if $dry_run == true
+    # enforce default
+    $dry_run ||= true
+    if $dry_run
       filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
-      logger.warn "[common] Going to run dry! No throughputs will be changed for real."
+      logger.warn '[common] Going to run dry! No throughputs will be changed for real.'
     else
       filters = []
     end
 
+    tables = []
+    config[:tables].each do |table_name|
+      if AWS::DynamoDB.new.tables[table_name].exists?
+        DynamoAutoscale.logger.info "[main] Found table '#{table_name}', proceeding"
+        tables << table_name
+      else
+        DynamoAutoscale.logger.warn "[main] Unable to find table '#{table_name}', excluding"
+      end
+    end
+    raise RuntimeError.new("[main] At least one table must exists, aborting") if tables.empty?
+
     DynamoAutoscale.poller_opts = {
-      tables: config[:tables],
+      tables: tables,
       filters: filters
     }
-    logger.debug "[common] Poller options: #{DynamoAutoscale.poller_opts}"
 
     DynamoAutoscale.actioner_opts = {
       group_downscales: config[:group_downscales],
       flush_after: config[:flush_after]
     }
-    logger.info "[common] Actioner options: #{DynamoAutoscale.actioner_opts}"
 
     DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
     DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
-
     logger.info "[common] Actioner limits: minimum throughput: #{DynamoAutoscale::Actioner.minimum_throughput}, maximum throughput: #{DynamoAutoscale::Actioner.maximum_throughput}"
 
     DynamoAutoscale.ruleset_location = config[:ruleset]
@@ -152,7 +164,7 @@ module DynamoAutoscale
 
   def self.handle_signals
     Signal.trap('USR1') do
-      STDERR.puts "Caught signal USR1!"
+      STDERR.puts "Caught signal USR1! Dumping data in JSON:"
       STDERR.puts tables.to_json
     end
 
@@ -168,7 +180,7 @@ module DynamoAutoscale
     end
 
     Kernel.trap('EXIT') do
-      STDERR.puts 'Bye.'
+      STDOUT.puts 'Bye, bye.'
     end
 
     Kernel.trap('QUIT') do

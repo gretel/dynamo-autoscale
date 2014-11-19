@@ -8,7 +8,7 @@ module DynamoAutoscale
 
     def dispatch table, time, datum, &block
       DynamoAutoscale.current_table = table
-      logger.debug "[dispatcher] #{time}: Dispatching to #{table.name} with data: #{datum}"
+      logger.debug "[dispatcher] #{time}: Dispatching to '#{table.name}'' with data: #{datum}"
 
       # If a nil value comes through, we can reasoanbly assume that it should
       # have been 0.
@@ -18,15 +18,15 @@ module DynamoAutoscale
       if datum[:provisioned_reads] and (datum[:consumed_reads] > datum[:provisioned_reads])
         lost_reads = datum[:consumed_reads] - datum[:provisioned_reads]
 
-        logger.warn "[dispatcher] [reads] Lost units: #{lost_reads} " +
-          "(#{datum[:consumed_reads]} - #{datum[:provisioned_reads]})"
+        logger.warn "[dispatcher] Lost read units: #{lost_reads.round(2)} " +
+          "(= consumed #{datum[:consumed_reads]} - provisioned #{datum[:provisioned_reads]})"
       end
 
       if datum[:provisioned_writes] and (datum[:consumed_writes] > datum[:provisioned_writes])
         lost_writes = datum[:consumed_writes] - datum[:provisioned_writes]
 
-        logger.warn "[dispatcher] [writes] Lost units: #{lost_writes} " +
-          "(#{datum[:consumed_writes]} - #{datum[:provisioned_writes]})"
+        logger.warn "[dispatcher] Lost write units: #{lost_writes.round(2)} " +
+          "(= consumed #{datum[:consumed_writes]} - provisioned #{datum[:provisioned_writes]})"
       end
 
       table.tick(time, datum)
