@@ -5,15 +5,14 @@
   # can access both CloudWatch and DynamoDB. For exact details on IAM policies,
   # check the project README.
   # Will try token authentication if unset.
-  :access_key_id:
-  :secret_access_key:
+  :access_key_id: "ABRAKADABRAOPENTHEDOOR"
+  :secret_access_key: "WELLYOUSEEMTOBEANEVILINTRUDERGETTHEFU*KOFF"
 
   # REQUIRED
   #
   # The region that your tables are in. If you have tables in multiple regions,
   # you'll need to run multiple instances of dynamo-autoscale to handle them.
-  :region: "us-east-1"
-
+  :region: "eu-central-1"
 
 # If you want to receive email reports whenever a scale operation happens, you
 # can specify this email config. If you don't want to receive emails, just
@@ -24,21 +23,20 @@
 # their GitHub: https://github.com/benprew/pony
 
 # :email:
-#   :to: "john.doe@example.com"
-#   :from: "dynamo-autoscale@example.com"
+#   :to: "devop@managing.that.mess.org"
+#   :from: "ec2-user@scale.like.hell.com"
 #   :via: :smtp
 #   :via_options:
 #     :port: 25
 #     :enable_starttls_auto: false
 #     :authentication: :plain
-#     :address: "mailserver.example.com"
-#     :user_name: "user"
+#     :address: "mailservers.have.issu.es"
+#     :user_name: "authname"
 #     :password: "password"
 
 # Filename (in 'templates/') of the ERB template to be used on sending email.
 
 # :email_template: "scale_report_email.erb"
-
 
 # REQUIRED
 #
@@ -46,26 +44,14 @@
 # purpose of rulesets can be found in the README.
 :ruleset: "gradual_tail.rb"
 
-
 # REQUIRED
 #
 # The following is an array of tables to monitor and autoscale. You need to
 # specify at least one.
 :tables:
-  - "my_table1"
-  - "my_table2"
-
-
-# If you don't want to scale dynamo just yet, you can say that you want to run
-# in "dry run" mode, which will monitor your production databases but all of the
-# scaling events will only be tracked locally.
-#
-# Very useful for making sure your rules will do the right thing.
-#
-# Do not forget to change this for production use as the CLI allows only
-# enabling --dry-run but not disabling it!
-:dry_run: true
-
+  - "casino_app"
+  - "cash_flow"
+  - "market_shares"
 
 # Because you are very limited by how many downscales you have per day, and
 # because downscaling both reads and writes at the same time only counts as a
@@ -73,7 +59,6 @@
 # apply 1 for reads and 1 for writes at the same time. It is recommended that
 # you turn this one.
 :group_downscales: true
-
 
 # This option only works in conjunction with the above group_downscales option.
 # If a downscale stays queued for a long time, you can specify a timeout and
@@ -83,11 +68,8 @@
 # Specified in seconds.
 :flush_after: 3600
 
-
 # The following two options are configurable minimums and maximums for
 # provisioned throughputs. Dynamo-autoscale will not go below or above whatever
 # you set here.
 :minimum_throughput: 10
 :maximum_throughput: 20000
-
-# END
