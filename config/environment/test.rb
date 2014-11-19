@@ -11,7 +11,9 @@ require 'timecop'
 require_relative 'common'
 
 TEST_CONFIG_PATH = DynamoAutoscale.config_dir('dynamo-autoscale-test.yml')
-DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH)
+
+DynamoAutoscale.load_config(TEST_CONFIG_PATH, { :dry_run => $dry_run })
+DynamoAutoscale.setup
 
 DynamoAutoscale.require_in_order(
   'spec/helpers/**.rb'

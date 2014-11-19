@@ -25,6 +25,18 @@ describe DynamoAutoscale::UnitCost do
     end
   end
 
+  context 'region: eu-central-1' do
+    before { AWS.config(region: 'eu-central-1') }
+
+    specify "#write should return a number" do
+      subject.class.write(50).should be_a Float
+    end
+
+    specify "#read should return a number" do
+      subject.class.read(50).should be_a Float
+    end
+  end
+
   context 'region: not-a-region' do
     before { AWS.config(region: 'not-a-region') }
 
