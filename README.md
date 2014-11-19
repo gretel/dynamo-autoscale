@@ -1,6 +1,8 @@
 # DynamoDB Autoscaling
 [![Build Status](https://travis-ci.org/gretel/dynamo-autoscale.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale)
 
+**FORKED**: This fork is currently not being merged upstream. The original authors do currently neither maintain the project nor do merge pull requests. So i just wanted to progress in terms of quality, no pun intended.
+
 **IMPORTANT**: Please read carefully before continuing! This tool, if used incorrectly, has the potential to cost you huge amounts of money. Proceeding with caution is mandatory, as we cannot be held responsible for misuse that leads to excessive cost on your AWS account.
 
 The command line tool has a --dry_run flag to test your configuration before actually changing the provisioned throughput values. It is highly recommended that you first try running dry and inspect the output to make sure this tool works as expected. Thank you!
