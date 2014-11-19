@@ -309,35 +309,21 @@ module DynamoAutoscale
       path
     end
 
-    def report! opts = {}
-      opts[:metric] ||= :units
-
-      unless [:cost, :units].include?(opts[:metric])
-        raise ArgumentError.new('The :metric option must be one of :cost or ' +
-          ':units')
-      end
-
-      if opts[:metric] == :units
-        STDERR.puts "         Table: #{name}"
-        STDERR.puts "Wasted r/units: #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
-        STDERR.puts " Total r/units: #{total_read_units.round(2)}"
-        STDERR.puts "  Lost r/units: #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
-        STDERR.puts "Wasted w/units: #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
-        STDERR.puts " Total w/units: #{total_write_units.round(2)}"
-        STDERR.puts "  Lost w/units: #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
-        STDERR.puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
-        STDERR.puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
-      elsif opts[:metric] == :cost
-        STDERR.puts "         Table: #{name}"
-        STDERR.puts "Wasted r/cost: $#{wasted_read_cost.round(2)} (#{wasted_read_percent.round(2)}%)"
-        STDERR.puts " Total r/cost: $#{total_read_cost.round(2)}"
-        STDERR.puts "  Lost r/cost: $#{lost_read_cost.round(2)} (#{lost_read_percent.round(2)}%)"
-        STDERR.puts "Wasted w/cost: $#{wasted_write_cost.round(2)} (#{wasted_write_percent.round(2)}%)"
-        STDERR.puts " Total w/cost: $#{total_write_cost.round(2)}"
-        STDERR.puts "  Lost w/cost: $#{lost_write_cost.round(2)} (#{lost_write_percent.round(2)}%)"
-        STDERR.puts "      Upscales: #{DynamoAutoscale.actioners[self].upscales}"
-        STDERR.puts "    Downscales: #{DynamoAutoscale.actioners[self].downscales}"
-      end
+    def report!
+        STDERR.puts "      Upscales : #{DynamoAutoscale.actioners[self].upscales}"
+        STDERR.puts "    Downscales : #{DynamoAutoscale.actioners[self].downscales}"
+        STDERR.puts "  Lost r/units : #{lost_read_units.round(2)} (#{lost_read_percent.round(2)}%)"
+        STDERR.puts "  Lost w/units : #{lost_write_units.round(2)} (#{lost_write_percent.round(2)}%)"
+        STDERR.puts "   Lost r/cost : $#{lost_read_cost.round(2)} (#{lost_read_percent.round(2)}%)"
+        STDERR.puts "   Lost w/cost : $#{lost_write_cost.round(2)} (#{lost_write_percent.round(2)}%)"
+        STDERR.puts " Total r/units : #{total_read_units.round(2)}"
+        STDERR.puts " Total w/units : #{total_write_units.round(2)}"
+        STDERR.puts "  Total r/cost : $#{total_read_cost.round(2)}"
+        STDERR.puts "  Total w/cost : $#{total_write_cost.round(2)}"
+        STDERR.puts "Wasted r/units : #{wasted_read_units.round(2)} (#{wasted_read_percent.round(2)}%)"
+        STDERR.puts "Wasted w/units : #{wasted_write_units.round(2)} (#{wasted_write_percent.round(2)}%)"
+        STDERR.puts " Wasted r/cost : $#{wasted_read_cost.round(2)} (#{wasted_read_percent.round(2)}%)"
+        STDERR.puts " Wasted w/cost : $#{wasted_write_cost.round(2)} (#{wasted_write_percent.round(2)}%)"
     end
 
     private

@@ -2,8 +2,17 @@ require_relative '../../lib/dynamo-autoscale/logger'
 require_relative '../../lib/dynamo-autoscale/actioner'
 require_relative '../../lib/dynamo-autoscale/poller'
 
+# TODO: abstraction
+LOGGER_LEVEL_DEFAULT = :info
 LOGGER_FORMAT = "%d [%5L] %p %h : %m"
 LOGGER_TIME_FORMAT = "%F %T.%L"
+
+VALID_REGIONS = [
+  'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
+  'us-east-1', 'us-west-1', 'us-west-2',
+  'eu-central-1', 'eu-west-1',
+  'sa-east-1'
+]
 
 module DynamoAutoscale
   include DynamoAutoscale::Logger
@@ -57,15 +66,13 @@ module DynamoAutoscale
     STDERR.sync = true
 
     # enforce logging level defaults if unset
-    $logger_level ||= DEFAULT_LOG_LEVEL
+    $logger_level ||= LOGGER_LEVEL_DEFAULT
 
     # see https://github.com/rudionrails/yell .. https://github.com/rudionrails/yell/wiki/101-formatting-log-messages
     DynamoAutoscale::Logger.logger = Yell.new do |l|
       l.adapter :stdout, level: "gte.#{$logger_level}", format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
-      l.adapter :stderr, level: [:error, :fatal], format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
+      # l.adapter :stderr, level: [:error, :fatal], format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
     end
-
-    logger.debug "[logger] Ready (#{logger.level.inspect})"
   end
 
   def self.load_config path, overrides = {}
@@ -82,13 +89,6 @@ module DynamoAutoscale
     # supress warning
     I18n.enforce_available_locales = false
 
-    valid_regions = [
-      'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
-      'us-east-1', 'us-west-1', 'us-west-2',
-      'eu-central-1', 'eu-west-1',
-      'sa-east-1'
-    ]
-
     aws_config = DynamoAutoscale.config[:aws].merge(:logger => DynamoAutoscale.logger, :log_level => :debug)
 
     raise DynamoAutoscale::Error::InvalidConfigurationError.new('You must specify a :region key in' +
@@ -96,7 +96,7 @@ module DynamoAutoscale
 
     DynamoAutoscale::Logger.logger.warn "Specified region '#{aws_config[:region]}'" +
       ' does not appear in the list of known regions.' +
-      ' Proceed with caution!' unless valid_regions.include?(aws_config[:region])
+      ' Proceed with caution!' unless VALID_REGIONS.include?(aws_config[:region])
 
     begin
       AWS.config(aws_config)
@@ -121,10 +121,8 @@ module DynamoAutoscale
 
     # connect to the thing in the sky
     DynamoAutoscale.setup_aws
-
     # enforce default
-    $dry_run ||= true
-    if $dry_run
+    if config[:dry_run]
       filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
       logger.warn '[common] Going to run dry! No throughputs will be changed for real.'
     else
@@ -134,26 +132,21 @@ module DynamoAutoscale
     tables = []
     config[:tables].each do |table_name|
       if AWS::DynamoDB.new.tables[table_name].exists?
-        DynamoAutoscale.logger.info "[main] Found table '#{table_name}', proceeding"
+        DynamoAutoscale.logger.info "[main] Found table '#{table_name}' in DynamoDB, proceeding..."
         tables << table_name
       else
-        DynamoAutoscale.logger.warn "[main] Unable to find table '#{table_name}', excluding"
+        DynamoAutoscale.logger.warn "[main] Unable to find table '#{table_name}' in DynamoDB, excluding..."
       end
     end
-    raise RuntimeError.new("[main] At least one table must exists, aborting") if tables.empty?
+    raise RuntimeError.new("[main] At least one table must exist in DynamoDB, aborting") if tables.empty?
 
-    DynamoAutoscale.poller_opts = {
-      tables: tables,
-      filters: filters
-    }
+    DynamoAutoscale.poller_opts = { tables: tables,
+                                    filters: filters }
+    DynamoAutoscale.actioner_opts = { group_downscales: config[:group_downscales],
+                                      flush_after: config[:flush_after] }
 
-    DynamoAutoscale.actioner_opts = {
-      group_downscales: config[:group_downscales],
-      flush_after: config[:flush_after]
-    }
-
-    DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] if config[:minimum_throughput]
-    DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] if config[:maximum_throughput]
+    DynamoAutoscale::Actioner.minimum_throughput = config[:minimum_throughput] unless config[:minimum_throughput].nil?
+    DynamoAutoscale::Actioner.maximum_throughput = config[:maximum_throughput] unless config[:maximum_throughput].nil?
     logger.info "[common] Actioner limits: minimum throughput: #{DynamoAutoscale::Actioner.minimum_throughput}, maximum throughput: #{DynamoAutoscale::Actioner.maximum_throughput}"
 
     DynamoAutoscale.ruleset_location = config[:ruleset]
@@ -169,14 +162,16 @@ module DynamoAutoscale
     end
 
     Signal.trap('USR2') do
-      STDERR.puts 'Caught signal USR2! Graphing disabled.'
     #   DynamoAutoscale.logger.info "[common] Caught signal USR2. Dumping graphs for all tables to '#{Dir.pwd}'"
-
     #   DynamoAutoscale.tables.each do |name, table|
     #     # TODO: abstraction
     #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_graph.png"), r_script: 'dynamodb_graph.r'
     #     table.graph! output_file: File.join(Dir.pwd, "#{table.name}_scatter.png"), r_script: 'dynamodb_scatterplot.r'
     #   end
+      STDERR.puts 'Caught signal USR2! Statistics:'
+      DynamoAutoscale.tables.each do |name, table|
+        table.report!
+      end
     end
 
     Kernel.trap('EXIT') do
@@ -188,7 +183,6 @@ module DynamoAutoscale
       sleep 1
       exit 0
     end
-
   end
 
   def self.dispatcher= new_dispatcher

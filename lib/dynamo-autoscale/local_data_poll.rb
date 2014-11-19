@@ -24,7 +24,7 @@ module DynamoAutoscale
             logger.info "[local_data_poll] Reading data for '#{table_name}' from '#{table_path}'."
             data = JSON.parse(File.read(table_path)).symbolize_keys
             if data[:consumed_writes].nil? or data[:consumed_reads].nil?
-              logger.warn "[local_data_poll] Lacking 'consumed_*' data for table '#{table_name}', skipping."
+              logger.warn "[local_data_poll] Lacking 'consumed_*' data for table '#{table_name}', skipping..."
               next
             end
             # All this monstrosity below is doing is parsing the time keys in

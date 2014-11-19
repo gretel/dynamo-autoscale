@@ -73,3 +73,7 @@
 # you set here.
 :minimum_throughput: 10
 :maximum_throughput: 20000
+
+# Update the thresholds of the read/write capacity alarms of CloudWatch for
+# the tables in DynamoDB. Requires permission 'cloudwatch:PutMetricAlarm'.
+:update_alarms: true

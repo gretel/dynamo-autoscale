@@ -3,8 +3,6 @@
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-DEFAULT_LOG_LEVEL = :info
-
 require 'rubygems'
 require 'commander'
 
@@ -20,7 +18,7 @@ class Command
     program :description, 'CLI to manage dynamo-autoscale in a nice way.'
     # default_command :help
 
-    global_option('--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal). Default is '#{DEFAULT_LOG_LEVEL}'.") { |val| $logger_level = val }
+    global_option('--log_level LEVEL', String, "Set logging level (debug, info, warn, error, fatal).") { |val| $logger_level = val }
 
     command :start do |c|
       c.syntax = "dynamo-autoscale #{c.name}"

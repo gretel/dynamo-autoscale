@@ -119,7 +119,7 @@ module DynamoAutoscale
 
             if @opts[:times].nil? or @count[table.name] == @opts[:times]
               @count[table.name] = 0
-              logger.info "[rule] Triggered rule: '#{self.to_english}'."
+              logger.info "[rule] Triggered rule: '#{self.to_english}'..."
               table.triggered_rules[table.latest_data_time] = self
 
               if scale = @opts[:scale]

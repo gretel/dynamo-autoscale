@@ -2,7 +2,7 @@ module DynamoAutoscale
   class Alarms
     include DynamoAutoscale::Logger
 
-    # Updates the thresholds of the read/write capacity alarms for a table in DynamoDB.
+    # Updates the thresholds of the read/write capacity alarms of CloudWatch for a table in DynamoDB.
     #
     # Example:
     #
@@ -50,9 +50,13 @@ module DynamoAutoscale
 
         # The only thing we want to update is the threshold
         update_opts[:threshold] = alarm[:threshold] * scale
-        logger.info "[alarms] [#{alarm[:alarm_name]}] #{alarm[:threshold]} -> #{update_opts[:threshold]}"
+        logger.info "[alarms] Changing CloudWatch alarm threshold: #{alarm[:threshold]} -> #{update_opts[:threshold]}"
         # Update metric alarm
-        client.put_metric_alarm(update_opts)
+        begin
+          client.put_metric_alarm(update_opts)
+        rescue => e
+          logger.warn "[alarms] Failed to change CloudWatch alarm threshold. Did you grant permission for 'cloudwatch:PutMetricAlarm'? (#{e})"
+        end
       end
     end
 

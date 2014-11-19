@@ -17,12 +17,11 @@ module DynamoAutoscale
 
       if DynamoAutoscale.config[:dry_run]
         @enabled = false
-      elsif config = DynamoAutoscale.config[:email]
-        @enabled = true
-        Pony.options = config
       else
-        @enabled = false
+        @enabled = true
       end
+
+      Pony.options = DynamoAutoscale.config[:email]
     end
 
     def email_subject

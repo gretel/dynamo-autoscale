@@ -12,7 +12,7 @@ require_relative 'common'
 
 TEST_CONFIG_PATH = DynamoAutoscale.config_dir('dynamo-autoscale-test.yml')
 
-DynamoAutoscale.load_config(TEST_CONFIG_PATH, { :dry_run => $dry_run })
+DynamoAutoscale.load_config(TEST_CONFIG_PATH, { :dry_run => true })
 DynamoAutoscale.setup
 
 DynamoAutoscale.require_in_order(

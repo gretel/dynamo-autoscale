@@ -18,7 +18,7 @@ module DynamoAutoscale
       begin
         self.send(name, options)
       rescue => e
-        DynamoAutoscale.logger.fatal "[main] Exception caught, #{e}"
+        DynamoAutoscale.logger.fatal "[main] Exception caught: #{e}"
         raise e
       end
     end
@@ -127,7 +127,6 @@ module DynamoAutoscale
       # cost is defined as provisioned throughout - consumed throughput, so throughput
       # that was paid for but not used).
       tables      = AWS::DynamoDB.new.tables.to_a.map(&:name)
-      puts tables # TODO
       pad         = tables.map(&:length).max
       total_waste = 0
       opts        = { period: 1.hour, start_time: 1.hour.ago, end_time: Time.now }
@@ -190,7 +189,7 @@ module DynamoAutoscale
 
       # if options.graph
       #   DynamoAutoscale.tables.each do |_, table|
-      #     table.report! metric: :cost
+      #     table.report!
       #     path = table.graph!
       #     raise 'Error saving graph.' unless path
       #     STDERR.puts "Graph saved to: #{path}"

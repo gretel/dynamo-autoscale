@@ -8,7 +8,7 @@ module DynamoAutoscale
 
     def dispatch table, time, datum, &block
       DynamoAutoscale.current_table = table
-      logger.debug "[dispatcher] #{time}: Dispatching to '#{table.name}'' with data: #{datum}"
+      logger.debug "[dispatcher] #{time}: Dispatching data for '#{table.name}': #{datum}"
 
       # If a nil value comes through, we can reasoanbly assume that it should
       # have been 0.
@@ -43,8 +43,8 @@ module DynamoAutoscale
               "to have its throughputs modified."
           end
         else
-          logger.debug "[dispatcher] Skipped rule check, data point was from " +
-            "more than 20 minutes ago. Too young to vote!"
+          logger.debug "[dispatcher] Skipped rule check, data point is " +
+            "more than 20 minutes old."
         end
       else
         logger.debug "[dispatcher] Skipped rule check, already checked for " +
