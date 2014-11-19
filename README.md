@@ -1,19 +1,9 @@
 # DynamoDB Autoscaling
-[![Build Status](https://travis-ci.org/invisiblehand/dynamo-autoscale.png?branch=master)](https://travis-ci.org/invisiblehand/dynamo-autoscale)
+[![Build Status](https://travis-ci.org/gretel/dynamo-autoscale.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale)
 
-**IMPORTANT**: It's highly recommended that you read this README before
-continuing. This project, if used incorrectly, has a lot of potential to cost
-you huge amounts of money. Proceeding with caution is paramount, as we cannot be
-held responsible for misuse that leads to excessive cost on your part.
+**IMPORTANT**: Please read carefully before continuing! This tool, if used incorrectly, has the potential to cost you huge amounts of money. Proceeding with caution is mandatory, as we cannot be held responsible for misuse that leads to excessive cost on your AWS account.
 
-There are tools and flags in place that will allow you to dry-run the project
-before actually allowing it to change your provisioned throughputs and it is
-highly recommended that you first try running the project as a dry-run and
-inspecting the log output to make sure it is doing what you expect.
-
-It is also worth noting that this project is very much in its infancy.
-
-You have been warned.
+The command line tool has a --dry_run flag to test your configuration before actually changing the provisioned throughput values. It is highly recommended that you first try running dry and inspect the output to make sure this tool works as expected. Thank you!
 
 ## Rules of the game
 
@@ -34,103 +24,89 @@ Here are the rules of the game:
   - Small spikes over your threshold are tolerated but the exact amount of time
   	they are tolerated for seems to vary.
 
-This project aims to take all of this into consideration and automatically scale
-your throughputs to enable you to deal with spikes and save money where
-possible.
+This project aims to take all of this into consideration and automatically scale your throughputs to enable you to deal with spikes and save money where possible.
 
 # Usage
 
-First of all, you'll need to install this project as a gem:
+There is no gem of this fork in the Rubygems index currently. Therefore, you need to download a local copy of this gem and install it manually:
 
-    $ gem install dynamo-autoscale
+    $ gem install dynamo-autoscale-0.4.2.2.gem
 
-This will give you access to the `dynamo-autoscale` executable. The executable
-takes a single argument, the path to a config file.
+This will install the gem containing the `dynamo-autoscale` executable. Please check the Rubygems documentation on where to expect the executable to be located. On Amazon Linux it will be in `/usr/local/bin`/. You might have to adjust your PATH environment variable accordingly.
 
 ## Configuration
 
-The configuration file is the central thing that `dynamo-autoscale` requires to
-function. It specifies what tables to monitor, maximum and minimum throughputs
-and where your ruleset is located.
+The configuration file require some changes, please specify your AWS account credentials (or 'nil' them for token authentication), the tables to monitor, minimum and maximum throughput values and where your ruleset is located.
 
-The `dynamo-autoscale` executable takes a single argument, and that is the path
-to the configuration file you want to use.
+**A sample configuration can be found in 'config/dynamo-autoscale.yml'.** Please check this file for configuration details and have a copy for your changes.
 
-**A sample config can be found in the project root directory.** It documents all
-of the options you can specify.
-
-This library requires AWS keys that have access to both CloudWatch and DynamoDB,
-for retriving data and sending scaling requests. Using IAM, create a new user, and
-assign the 'CloudWatch Read Only Access' policy template. In addition, you will
-need to use the Policy Generator to add at least the following Amazon DynamoDB actions:
+This library requires AWS access right for CloudWatch and DynamoDB to retrieve data and submit changes. Using IAM, create a new user and assign the 'CloudWatch Read Only Access' policy template. In addition, you will need to use the Policy Generator to add at least the following DynamoDB actions:
 
   - "dynamodb:DescribeTable"
   - "dynamodb:ListTables"
   - "dynamodb:UpdateTable"
 
-The ARN for the custom policy can be specified as '\*' to allow access to all tables,
-or alternatively you can refer to the IAM documentation to limit access to specific
-tables only.
+The ARN for the custom policy can be specified as '\*' to allow access to all tables. This is required for the 'lament_wastage' command. Please refer to the IAM documentation on how to set fine-grained access limits.
 
 ### Minimal "getting started" configuration
 
 ``` yaml
 :aws:
-  :access_key_id:      "your_id"
-  :secret_access_key:  "your_key"
+  # REQUIRED
+  #
+  # Here is where you specify your AWS ID and key. It needs to be a pair that
+  # can access both CloudWatch and DynamoDB. For exact details on IAM policies,
+  # check the project README.
+  # Will try token authentication if unset.
+  :access_key_id: "ABRAKADABRAOPENTHEDOOR"
+  :secret_access_key: "WELLYOUSEEMTOBEANEVILINTRUDERGETTHEFU*KOFF"
 
-  # Currently, dynamo-autoscale can only operate in one region at a time. If you
-  # want to track tables in multiple regions, you will have to run multiple
-  # instances of dynamo-autoscale.
-  :region:             "us-east-1"
+  # REQUIRED
+  #
+  # The region that your tables are in. If you have tables in multiple regions,
+  # you'll need to run multiple instances of dynamo-autoscale to handle them.
+  :region: "eu-central-1"
 
-# There are some example rulesets in the rulesets/ directory of this project.
-:ruleset: "path_to_your_ruleset.rb"
+# REQUIRED
+#
+# Filename (in 'rulesets/') of the ruleset. Further information on the syntax and
+# purpose of rulesets can be found in the README.
+:ruleset: "gradual_tail.rb"
 
+# REQUIRED
+#
+# The following is an array of tables to monitor and autoscale. You need to
+# specify at least one.
 :tables:
-  - "your_table_name"
+  - "casino_app"
+  - "cash_flow"
+  - "market_shares"
 
-# In dry-run mode, the program will do exactly what it would normally except it
-# won't touch DynamoDB at all. It will just log the changes it would have made
-# in production locally.
-:dry_run: true
+# Because you are very limited by how many downscales you have per day, and
+# because downscaling both reads and writes at the same time only counts as a
+# single downscale, the following option will queue up downscales until it can
+# apply 1 for reads and 1 for writes at the same time. It is recommended that
+# you turn this one.
+:group_downscales: true
+
+# This option only works in conjunction with the above group_downscales option.
+# If a downscale stays queued for a long time, you can specify a timeout and
+# just apply a single read or write downscale after a specified amount of time
+# passes.
+#
+# Specified in seconds.
+:flush_after: 3600
+
+# The following two options are configurable minimums and maximums for
+# provisioned throughputs. Dynamo-autoscale will not go below or above whatever
+# you set here.
+:minimum_throughput: 10
+:maximum_throughput: 20000
 ```
-
-Save this somewhere on your filesystem and point the `dynamo-autoscale`
-executable to it:
-
-    $ dynamo-autoscale path/to/config.yml
-
-### Pre 0.4.1 users
-
-If you used a version of `dynamo-autoscale` prior to v0.4.1 you may have noticed
-odd issues when using a region that wasn't `us-east-1`. This has hopefully been
-fixed from v0.4.1 onwards and you should just be able to set the AWS region in
-your config YAML file and have it "just work".
-
-As a precaution, `dynamo-autoscale` will refuse to run unless an AWS region has
-been explicitly specified. This is to avoid problems with old configurations
-running strangely on versions including and after 0.4.1.
-
-## Logging
-
-`dynamo-autoscale` tries to be quite verbose with its logging, which might seem
-intimidating to first time users. Because this project is dealing rather
-directly with a service that can cost you a lot of money, we want to err on the
-side of caution and be as explicit as possible.
-
-If you require more logging to debug a problem, you can set the `DEBUG`
-environment variable:
-
-    $ DEBUG=true dynamo-autoscale <args...>
-
-Keep in mind that this will generate a _lot_ of output.
 
 ## Rulesets
 
-A rule set is the primary user input for dynamo-autoscale. It is a DSL for
-specifying when to increase and decrease your provisioned throughputs. Here is a
-very basic rule set:
+A rule set is the primary user input for dynamo-autoscale. It is a DSL for specifying when to increase and decrease your provisioned throughputs. Here is a very basic rule set:
 
 ``` ruby
 reads  last: 1, greater_than: "90%", scale: { on: :consumed, by: 2 }
@@ -140,34 +116,18 @@ reads  for:  2.hours, less_than: "50%", min: 2, scale: { on: :consumed, by: 2 }
 writes for:  2.hours, less_than: "50%", min: 2, scale: { on: :consumed, by: 2 }
 ```
 
-You would put this ruleset in a file and then add the path to the ruleset to
-your `dynamo-autoscale` config. If you specify a relative path, the program will
-assume a path relative to its `Dir.pwd`.
+You would put this ruleset in a file and then add the path to the ruleset to your `dynamo-autoscale` config. If you specify a relative path, the program will assume a path relative to its `Dir.pwd`.
 
-The first two rules are designed to deal with spikes. They are saying that if
-the consumed capacity units is greater than 90% of the provisioned throughput
-for a single data point, scale the provisioned throughput up by the last
-consumed units multiplied by two.
+The first two rules are designed to deal with spikes. They are saying that if the consumed capacity units is greater than 90% of the provisioned throughput for a single data point, scale the provisioned throughput up by the last consumed units multiplied by two.
 
 For example, if we had a provisioned reads of 100 and a consumed units of
-95 comes through, that will trigger that rule and the table will be scaled up to
-have a provisioned reads of 190.
+95 comes through, that will trigger that rule and the table will be scaled up to have a provisioned reads of 190.
 
-The last two rules are controlling downscaling. Because downscaling can only
-happen 4 times per day per table, the rules are far less aggressive. Those rules
-are saying: if the consumed capacity is less than 50% of the provisioned for a
-whole two hours, with a minimum of 2 data points, scale the provisioned
-throughput to the consumed units multiplied by 2.
+The last two rules are controlling downscaling. Because downscaling can only happen 4 times per day per table, the rules are far less aggressive. Those rules are saying: if the consumed capacity is less than 50% of the provisioned for a whole two hours, with a minimum of 2 data points, scale the provisioned throughput to the consumed units multiplied by 2.
 
 ### The :last and :for options
 
-These options declare how many points or what time range you want to examine.
-They're aliases of each other and if you specify both, one will be ignored. If
-you don't specify a `:min` or `:max` option, they will just get as many points
-as they can and evaluate the rest of the rule even if they don't get a full 2
-hours of data, or a full 6 points of data. This only affects the start of the
-process's lifetime, eventually it will have enough data to always get the full
-range of points you're asking for.
+These options declare how many points or what time range you want to examine. They're aliases of each other and if you specify both, one will be ignored. If you don't specify a `:min` or `:max` option, they will just get as many points as they can and evaluate the rest of the rule even if they don't get a full 2 hours of data, or a full 6 points of data. This only affects the start of the process's lifetime, eventually it will have enough data to always get the full range of points you're asking for.
 
 ### The :min and :max options
 
@@ -182,12 +142,9 @@ reads for: 2.hours, less_than: "50%", min: 20, scale: { on: :consumed, by: 2 }
 
 ### The :greater_than and :less_than options
 
-You must specify at least one of these options for the rule to actually validate
-without throwing an error. Having neither makes no sense.
+You must specify at least one of these options for the rule to actually validate without throwing an error. Having neither makes no sense.
 
-You can specify either an absolute value or a percentage specified as a string.
-The percentage will calculate the percentage consumed against the amount
-provisioned.
+You can specify either an absolute value or a percentage specified as a string. The percentage will calculate the percentage consumed against the amount provisioned.
 
 Examples:
 
@@ -199,17 +156,11 @@ reads for: 2, less_than: "20%", scale: { on: :consumed, by: 2 }
 
 ### The :scale option
 
-The `:scale` option is a way of doing a simple change to the provisioned
-throughput without having to specify repetitive stuff in a block. `:scale`
-expects to be a hash and it expects to have two keys in the hash: `:on` and
-`:by`.
+The `:scale` option is a way of doing a simple change to the provisioned throughput without having to specify repetitive stuff in a block. `:scale` expects to be a hash and it expects to have two keys in the hash: `:on` and `:by`.
 
-`:on` specifies what part of the metric you want to scale on. It can either by
-`:provisioned` or `:consumed`. In most cases, `:consumed` makes a lot more sense
-than `:provisioned`.
+`:on` specifies what part of the metric you want to scale on. It can either by `:provisioned` or `:consumed`. In most cases, `:consumed` makes a lot more sense than `:provisioned`.
 
-`:by` specifies the scale factor. If you want to double the provisioned capacity
-when a rule triggers, you would write something like this:
+`:by` specifies the scale factor. If you want to double the provisioned capacity when a rule triggers, you would write something like this:
 
 ``` ruby
 reads for: 2.hours, less_than: "30%", scale: { on: :provisioned, by: 0.5 }
@@ -219,15 +170,9 @@ And that would half the provisioned throughput for reads if the consumed is
 less than 30% of the provisioned for 2 hours.
 
 ### Passing a block
+If you want to do something a little bit more complicated with your rules, you can pass a block to them. The block will get passed three things: the table the rule was triggered for, the rule object that triggered and the actioner for that table.
 
-If you want to do something a little bit more complicated with your rules, you
-can pass a block to them. The block will get passed three things: the table the
-rule was triggered for, the rule object that triggered and the actioner for that
-table.
-
-An actioner is an abstraction of communication with Dynamo and it allows
-communication to be faked if you want to do a dry run. It exposes a very simple
-interface. Here's an example:
+An actioner is an abstraction of communication with Dynamo and it allows communication to be faked if you want to do a dry run. It exposes a very simple interface. Here's an example:
 
 ``` ruby
 writes for: 2.hours, greater_than: 200 do |table, rule, actioner|
@@ -235,18 +180,12 @@ writes for: 2.hours, greater_than: 200 do |table, rule, actioner|
 end
 ```
 
-This rule will set the provisioned write throughput to 300 if the consumed
-writes are greater than 200 for 2 hours. The actioner handles a tonne of things
-under the hood, such as making sure you don't scale up more than you're allowed
-to in a single call and making sure you don't try to change a table when it's in
-the updating state.
+This rule will set the provisioned write throughput to 300 if the consumed writes are greater than 200 for 2 hours. The actioner handles a tonne of things under the hood, such as making sure you don't scale up more than you're allowed to in a single call and making sure you don't try to change a table when it's in the updating state.
 
 It also handles the grouping of downscales, which we will talk about in a later
 section of the README.
 
-The `table` argument is a `TableTracker` object. For a run down of what
-information is available to you I advise checking out the source code in
-`lib/dynamo-autoscale/table_tracker.rb`.
+The `table` argument is a `TableTracker` object. For a run down of what information is available to you I advise checking out the source code in `lib/dynamo-autoscale/table_tracker.rb`.
 
 ### The :times option
 
@@ -259,10 +198,7 @@ Example:
 writes for: 10.minutes, greater_than: "90%", times: 3, scale: { on: :consumed, by: 1.5 }
 ```
 
-This says that is writes are greater than 90% for 10 minutes three checks in a
-row, scale by the amount consumed multiplied by 1.5. A new check will only
-happen when the table receives new data from cloud watch, which means that the
-10 minute windows could potentially overlap.
+This says that is writes are greater than 90% for 10 minutes three checks in a row, scale by the amount consumed multiplied by 1.5. A new check will only happen when the table receives new data from cloud watch, which means that the 10 minute windows could potentially overlap.
 
 ### Table-specific rules
 
@@ -277,103 +213,199 @@ end
 reads for: 2, less_than: "20%", scale: { on: :consumed, by: 2 }
 ```
 
-Anything outside of a `table` block will apply to all tables you specify in your
-config.
+Anything outside of a `table` block will apply to all tables you specify in your config.
 
 ## Downscale grouping
 
-You can downscale reads or writes individually and this will cost you one of
-your four downscales for the current day. Or, you can downscale reads and writes
-at the same time and this also costs you one of your four. (Reference:
-http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html)
+You can downscale reads or writes individually and this will cost you one of your four downscales for the current day. Or, you can downscale reads and writes at the same time and this also costs you one of your four. (Reference: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html)
 
-Because of this, the actioner can handle the grouping up of downscales by adding
-the following to your config:
+Because of this, the actioner can handle the grouping up of downscales by adding the following to your config:
 
 ``` yaml
 :group_downscales: true
 :flush_after: 300
 ```
 
-What this is saying is that if a write downscale came in, the actioner wouldn't
-fire it off immediately. It would wait 300 seconds, or 5 minutes, to see if a
-corresponding read downscale was triggered and would run them both at the same
-time. If no corresponding read came in, after 5 minutes the pending write
-downscale would get "flushed" and applied without a read downscale.
+What this is saying is that if a write downscale came in, the actioner wouldn't fire it off immediately. It would wait 300 seconds, or 5 minutes, to see if a corresponding read downscale was triggered and would run them both at the same time. If no corresponding read came in, after 5 minutes the pending write downscale would get "flushed" and applied without a read downscale.
 
-This technique helps to save downscales on tables that may have unpredictable
-consumption. You may need to tweak the `flush_after` value to match your own
-situation. By default, there is no `flush_after` and downscales will wait
-indefinitely, but this may not be desirable.
+This technique helps to save downscales on tables that may have unpredictable consumption. You may need to tweak the `flush_after` value to match your own situation. By default, there is no `flush_after` and downscales will wait indefinitely, but this may not be desirable.
+
+## Running
+
+A command line interface is provided to manage `dynamo-autoscale` in a nice way:
+
+```
+$ dynamo-autoscale --help
+
+  NAME:
+
+    dynamo-autoscale
+
+  DESCRIPTION:
+
+    CLI to manage dynamo-autoscale in a nice way.
+
+  COMMANDS:
+
+    check_config         Check the YAML structure of the configuration file.
+    check_email          Try to send a notification email as configured.
+    check_ruleset        Check the scaling ruleset defined.
+    help                 Display global or [command] help documentation
+    lament_wastage       Calculate what a waste of money this is (not).
+    pull_cw_data         Save historic data from the CloudWatch API in JSON.
+    start                Start the tool and enter the polling loop.
+    test_random          Run with random data to see what would happen.
+    test_simulate        Run a simulation test to check the configuration. Requires historic data available, please use the 'pull_cw_data' command.
+
+  GLOBAL OPTIONS:
+
+    --log_level LEVEL
+        Set logging level (debug, info, warn, error, fatal). Default is 'info'.
+
+    -h, --help
+        Display help documentation
+
+    -v, --version
+        Display version information
+
+    -t, --trace
+        Display backtrace when an error occurs
+
+```
+
+First of all, please set up a suitable configuration for your needs. You can check the YAML structure of the configuration file using the `check_config ` command:
+
+```$ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
+
+    2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
+    2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [main] Configuration file 'config/dynamo-autoscale.yml' seems to be OK.
+    Dumping parsed configuration in YAML:
+    ---
+    :aws:
+      :access_key_id: ABRAKADABRAOPENTHEDOOR
+      :secret_access_key: WELLYOUSEEMTOBEANEVILINTRUDERGETTHEFU
+      :region: eu-central-1
+    :ruleset: gradual_tail.rb
+    :tables:
+    - casino_app
+    - cash_flow
+    - market_shares
+    :group_downscales: true
+    :flush_after: 3600
+    :minimum_throughput: 10
+    :maximum_throughput: 20000
+    :dry_run:
+```
+
+In addition, the scaling ruleset defined can be checked using the `check_ruleset` command:
+
+```$ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
+
+  2014-11-19 18:34:45.083 [ INFO] 50854 devbox : [common] Version 0.4.2.2 (working in '/tmp/data') starting up...
+  2014-11-19 18:34:45.084 [ INFO] 50854 devbox : [main] Ruleset 'gradual_tail.rb' seems to be OK.
+```
+
+To pull 'historic' data from the CloudWatch API the `pull_cw_data` command is used:
+
+```$ dynamo-autoscale pull_cw_data --config config/dynamo-autoscale.my_project.yml
+
+  2014-11-19 18:36:04.470 [ INFO] 51072 simulair.eur.adobe.com : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
+  2014-11-19 18:36:04.613 [ WARN] 51072 simulair.eur.adobe.com : [common] Going to run dry! No throughputs will be changed for real.
+  2014-11-19 18:36:05.070 [ INFO] 51072 simulair.eur.adobe.com : [main] Found table 'casino_app', proceeding
+  2014-11-19 18:36:05.152 [ INFO] 51072 simulair.eur.adobe.com : [common] Actioner options: {:group_downscales=>true, :flush_after=>3600}
+  2014-11-19 18:36:05.152 [ INFO] 51072 simulair.eur.adobe.com : [common] Actioner limits: minimum throughput: 10, maximum throughput: 20000
+  2014-11-19 18:36:05.154 [ INFO] 51072 simulair.eur.adobe.com : [common] Loaded 8 rules from 'gradual_tail.rb'.
+  2014-11-19 18:36:05.157 [ INFO] 51072 simulair.eur.adobe.com : [main] Going to pull data from CloudWatch for: [Wed, 12 Nov 2014, Thu, 13 Nov 2014, Fri, 14 Nov 2014, Sat, 15 Nov 2014, Sun, 16 Nov 2014, Mon, 17 Nov 2014, Tue, 18 Nov 2014, Wed, 19 Nov 2014]
+  2014-11-19 18:36:05.157 [ INFO] 51072 simulair.eur.adobe.com : [main] Collecting data for 'casino_app' on '2014-11-12'..
+  ....
+```
+
+Having that done you should be able to run a simulation based upon this data:
+
+    $ dynamo-autoscale test_simulate --config config/dynamo-autoscale.my_project.yml
+
+Check on the output if scaling simulation happens as expected (defined by the ruleset).
+
+Each command has an additional help, let's see what `start` allows us to do:
+
+```
+$ dynamo-autoscale help start
+
+  NAME:
+
+    start
+
+  SYNOPSIS:
+
+    dynamo-autoscale start
+
+  DESCRIPTION:
+
+    Start the tool and enter the polling loop.
+
+  OPTIONS:
+
+    -c, --config PATH
+        Configuration file.
+
+    -n, --dry_run
+        Do not actually change the throughput values.
+```
+
+Now, let's have a dry run using the `start` command and it's `--dry_run` flag as explained above:
+
+    $ dynamo-autoscale --dry_run --config config/dynamo-autoscale.my_project.yml
+
+If something goes wrong it is a good idea to raise the logging level and check on the verbose output:
+
+    $ dynamo-autoscale --dry_run --config config/dynamo-autoscale.my_project.yml --log_level debug
+
+For production use, all of the above is not needed. Just kick the process up using:
+
+    $ dynamo-autoscale --config config/dynamo-autoscale.my_project.yml
+
+This can be done in a screen or let the process be managed by [Eye]https://github.com/kostya/eye) or so.
 
 ## Signalling
 
-The `dynamo-autoscale` process responds to the SIGUSR1 and SIGUSR2 signals. What
-we've done may be a dramatic bastardisation of what signals are intended for or
-how they work, but here's what each does.
+The `dynamo-autoscale` process responds to the QUIT and SIGUSR1 signal.
+
+### QUIT
+
+The process will quit gracefully.
 
 ### USR1
 
-If you send SIGUSR1 to the process as it's running, the process will dump all of
-the data it has collected on all of the tables it is collecting for into CSV
-files in the directory it was run in.
-
-Example:
-
-    $ dynamo-autoscale path/to/config.yml
-    # Runs as PID 1234. Wait for some time to pass...
-    $ kill -USR1 1234
-    $ cat some_table.csv
-
-The CSV is in the following format:
-
-    time,provisioned_reads,provisioned_writes,consumed_reads,consumed_writes
-    2013-07-02T10:48:00Z,800.0,600.0,390.93666666666667,30.54
-    2013-07-02T10:49:00Z,800.0,600.0,390.93666666666667,30.54
-    2013-07-02T10:53:00Z,800.0,600.0,386.4533333333333,95.26666666666667
-    2013-07-02T10:54:00Z,800.0,600.0,386.4533333333333,95.26666666666667
-    2013-07-02T10:58:00Z,800.0,600.0,110.275,25.406666666666666
-    2013-07-02T10:59:00Z,800.0,600.0,246.12,54.92
-
-### USR2
-
-If you send SIGUSR2 to the process as it's running, the process will take all of
-the data it has on all of its tables and generate a graph for each table using R
-(see the Graphs section below). This is handy for visualising what the process
-is doing, especially after doing a few hours of a `dry_run`.
+If you send SIGUSR1 the process will dump all of the data it has been collecting on the tables to STDERR in JSON format. This can be used to have a logging agent grab the data.
 
 ## Scale Report Emails
 
-If you would like to receive email notifications whenever a scale event happens,
-you can specify some email options in your configuration. Specifying the email
-options implicitly activates email reports. Not including your email config
-implicitly turns it off.
+Disabled by default, but ff you would like to receive email notifications whenever a scale event happens, you can specify some email options in your configuration. Specifying the email options implicitly activates email reports. Not including your email config implicitly turns it off.
 
 Sample email config:
 
 ``` yaml
+
 :email:
-  :to: "john.doe@example.com"
-  :from: "dynamo-autoscale@example.com"
+  :to: "devop@managing.that.mess.org"
+  :from: "ec2-user@scale.like.hell.com"
   :via: :smtp
   :via_options:
     :port: 25
     :enable_starttls_auto: false
     :authentication: :plain
-    :address: "mailserver.example.com"
-    :user_name: "user"
+    :address: "mailservers.have.issu.es"
+    :user_name: "authname"
     :password: "password"
+
+:email_template: "scale_report_email.erb"
 ```
 
-We're using Pony internally to send email and this part of the config just gets
-passed to Pony verbatim. Check out the [Pony](https://github.com/benprew/pony)
-documentation for more details on the options it supports.
+[Pony](https://github.com/benprew/pony)  is used internally. This part of the configuration just gets passed to Pony. Check out the documentation for more details on the options it supports.
 
 # Developers / Tooling
 
-Everything below this part of the README is intended for people that want to
-work on the dynamo-autoscale codebase or use the internal tools that we use for
-testing new rulesets.
+Everything below this part of the README is intended for people that want to work on the dynamo-autoscale codebase or use the internal tools that we use for testing new rulesets.
 
 ## Technical details
 
@@ -381,84 +413,28 @@ The code has a set number of moving parts that are globally available and must
 implement certain interfaces (for exact details, you would need to study the
 code):
 
-  - `DynamoAutoscale.poller`: This component is responsible for pulling data
-  	from a data source (CloudWatch or Local at the moment) and piping it into
-  	the next stage in the pipeline.
+  - `DynamoAutoscale.poller`: This component is responsible for pulling data from a data source (CloudWatch or Local at the moment) and piping it into the next stage in the pipeline.
 
-  - `DynamoAutoscale.dispatcher`: The dispatcher takes data from the poller and
-  	populates a hash table of `TableTracker` objects, as well as checking to see
-  	if any of the tables have triggered any rules.
+  - `DynamoAutoscale.dispatcher`: The dispatcher takes data from the poller and populates a hash table of `TableTracker` objects, as well as checking to see if any of the tables have triggered any rules.
 
-  - `DynamoAutoscale.rules`: The ruleset contains an array of `Rule` objects
-  	inside a hash table keyed by table name. The ruleset initializer takes a
-  	file path as an argument, or a block, either of these needs to contain a set
-  	of rules (examples can be found in the `rulesets/` directory).
+  - `DynamoAutoscale.rules`: The ruleset contains an array of `Rule` objects inside a hash table keyed by table name. The ruleset initializer takes a file path as an argument, or a block, either of these needs to contain a set of rules (examples can be found in the `rulesets/` directory).
 
-  - `DynamoAutoscale.actioners`: The actioners are what perform provision scaling.
-  	Locally this is faked, in production it makes API calls to DynamoDB.
+  - `DynamoAutoscale.actioners`: The actioners are what perform provision scaling. Locally this is faked, in production it makes API calls to DynamoDB.
 
-  - `DynamoAutoscale.tables`: This is a hash table of `TableTracker` objects,
-  	keyed on the table name.
+  - `DynamoAutoscale.tables`: This is a hash table of `TableTracker` objects, keyed on the table name.
 
-All of these components are globally available because most of them need access
-to each other and it was a pain to pass instances of them around to everybody
-that needed them.
+All of these components are globally available because most of them need access to each other and it was a pain to pass instances of them around to everybody that needed them.
 
-They're also completely swappable. As long as they implement the right methods
-you can get your data from anywhere, dispatch your data to anywhere and send
-your actions to whatever you want. The defaults all work on local data gathered
-with the `script/historic_data` executable.
-
-## Testing rules locally
-
-If you want to test rules on your local machine without having to query
-CloudWatch or hit DynamoDB, there are tools that facilitate that nicely.
-
-### Running a test
-
-You can run a big batch of data all in one go with the `script/test` script.
-This script can be invoked like this:
-
-    $ script/test path/to/config.yml
-
-You will need to make sure you have historic data available for whatever tables
-you have listed in your config file. If you don't, it's easy to gather it:
-
-    $ script/historic_data path/to/config.yml
-
-This script goes off to CloudWatch and pulls down about a week of data for each
-table you have listed in your config. Then you can continue to re-run the
-`script/test` command and watch a tonne of log output fly by.
+They're also completely swappable. As long as they implement the right methods you can get your data from anywhere, dispatch your data to anywhere and send your actions to whatever you want. The defaults all work on local data gathered with the `script/historic_data` executable.
 
 #### Graphs
 
-If you felt so inclined, you could add the `--graph` flag to the above command
-and the script will generate a graph for you at the end. This will shell out to
-an R process to generate the graph, so you will need to ensure that you have R
-installed on your system with the `ggplot2` and `reshape` packages installed.
-
-Personally, I use a Mac and I attempted to install R through Homebrew but had
-troubles with compiling packages. I had far more success when I installed R
-straight from the R website, http://cran.r-project.org/bin/macosx/, and used
-their GUI R.app to install the packages.
-
-None of this is required to run the `dynamo-autoscale` executable in production.
-
-### Simulating data coming in
-
-There's a script called `script/simulator` that allows you to step through data
-as it arrives. It takes the exact same arguments as the `script/test` script but
-instead of running all the way through the data and generating a report,
-`script/simulate` will pause after each round of new data and drop you into a
-REPL. This is very handy for debugging tricky situations with your rules or the
-codebase.
-
-The simulator does not hit CloudWatch or DynamoDB at any point.
+Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal 'SIGUSR1'.
 
 ## Contributing
 
 Report Issues/Feature requests on
-[GitHub Issues](https://github.com/invisiblehand/dynamo-autoscale/issues).
+[GitHub Issues](https://github.com/gretel/dynamo-autoscale/issues).
 
 #### Note on Patches/Pull Requests
 
@@ -466,20 +442,11 @@ Report Issues/Feature requests on
  * Make your feature addition or bug fix.
  * Add tests for it. This is important so we don't break it in a future version
  	 unintentionally.
- * Commit, do not modify the rakefile, version, or history.  (if you want to
- 	 have your own version, that is fine but bump version in a commit by itself so
- 	 it can be ignored when we pull)
+ * Commit, do not modify the rakefile, version, or history.  (if you want to have your own version, that is fine but bump version in a commit by itself so it can be ignored when we pull)
  * Send a pull request. Bonus points for topic branches.
-
-### About InvisibleHand
-
-InvisibleHand is a price comparison API and browser extension which provides real-time
-prices for millions of products at hundreds of retailers, and automatic price comparison.
-
-For more information about our API and technologies, please read our [DevBlog](http://devblog.getinvisiblehand.com/).
 
 ### Copyright
 
-Copyright (c) 2013 InvisibleHand Software Ltd. See
-[LICENSE](https://github.com/invisiblehand/dynamo-autoscale/blob/master/LICENSE)
-for details.
+Copyright (c) 2013 InvisibleHand Software Ltd.
+Copyright (c) 2014 Tom Hensel IT Services
+See [LICENSE](https://github.com/gretel/dynamo-autoscale/blob/master/LICENSE) for details.
