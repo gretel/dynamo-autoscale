@@ -4,7 +4,7 @@ require 'active_support/all'
 module DynamoAutoscale
   class CWPoller < Poller
     include DynamoAutoscale::Logger
-    # TODO: abstract
+    # TODO: abstraction
     INTERVAL = 5.minutes
 
     def backdate

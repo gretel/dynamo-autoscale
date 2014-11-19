@@ -7,7 +7,7 @@ module DynamoAutoscale
   class TableTracker
     include DynamoAutoscale::Logger
 
-    # TODO: This time window may need changing.
+    # TODO: abstraction
     TIME_WINDOW = 7.days
 
     attr_reader :name, :data, :triggered_rules, :scale_events
