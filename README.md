@@ -28,7 +28,7 @@ Here are the rules of the game:
 
 This project aims to take all of this into consideration and automatically scale your throughputs to enable you to deal with spikes and save money where possible.
 
-# Usage
+# Installation
 
 There is no gem of this fork in the Rubygems index currently. Therefore, you need to download a local copy of this gem and install it manually:
 
@@ -47,6 +47,7 @@ This library requires AWS access right for CloudWatch and DynamoDB to retrieve d
   - "dynamodb:DescribeTable"
   - "dynamodb:ListTables"
   - "dynamodb:UpdateTable"
+  - "cloudwatch:PutMetricAlarm"
 
 The ARN for the custom policy can be specified as '\*' to allow access to all tables. This is required for the 'lament_wastage' command. Please refer to the IAM documentation on how to set fine-grained access limits.
 
@@ -104,6 +105,10 @@ The ARN for the custom policy can be specified as '\*' to allow access to all ta
 # you set here.
 :minimum_throughput: 10
 :maximum_throughput: 20000
+
+# Update the thresholds of the read/write capacity alarms of CloudWatch for
+# the tables in DynamoDB. Requires permission 'cloudwatch:PutMetricAlarm'.
+:update_alarms: true
 ```
 
 ## Rulesets
@@ -232,13 +237,21 @@ What this is saying is that if a write downscale came in, the actioner wouldn't 
 
 This technique helps to save downscales on tables that may have unpredictable consumption. You may need to tweak the `flush_after` value to match your own situation. By default, there is no `flush_after` and downscales will wait indefinitely, but this may not be desirable.
 
-## Running
+## Cloudwatch Alarms
 
-A command line interface is provided to manage `dynamo-autoscale` in a nice way:
+The alarm thresholds will be updated automatically. To disable this behaviour (or if you don't want to grant `cloudwatch:PutMetricAlarm`) change the configuration file accordingly:
+
+    :update_alarms: false
+
+## Using the CLI
+
+A command line interface is provided to manage `dynamo-autoscale` in a nice way. Requiring the gem to be installed as described above you can use your terminal shell of choice to call the command like:
+
+    $ dynamo-autoscale ---help
+
+The output will be
 
 ```
-$ dynamo-autoscale --help
-
   NAME:
 
     dynamo-autoscale
@@ -309,27 +322,26 @@ $ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
   2014-11-19 18:34:45.084 [ INFO] 50854 devbox : [main] Ruleset 'gradual_tail.rb' seems to be OK.
 ```
 
-To pull 'historic' data from the CloudWatch API the `pull_cw_data` command is used:
+To pull 'historic' data from the CloudWatch API (currently the timerange is a hardcoded week) the `pull_cw_data` command is used:
 
 ```
 $ dynamo-autoscale pull_cw_data --config config/dynamo-autoscale.my_project.yml
-
-  2014-11-19 18:36:04.470 [ INFO] 51072 simulair.eur.adobe.com : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
-  2014-11-19 18:36:04.613 [ WARN] 51072 simulair.eur.adobe.com : [common] Going to run dry! No throughputs will be changed for real.
-  2014-11-19 18:36:05.070 [ INFO] 51072 simulair.eur.adobe.com : [main] Found table 'casino_app', proceeding
-  2014-11-19 18:36:05.152 [ INFO] 51072 simulair.eur.adobe.com : [common] Actioner options: {:group_downscales=>true, :flush_after=>3600}
-  2014-11-19 18:36:05.152 [ INFO] 51072 simulair.eur.adobe.com : [common] Actioner limits: minimum throughput: 10, maximum throughput: 20000
-  2014-11-19 18:36:05.154 [ INFO] 51072 simulair.eur.adobe.com : [common] Loaded 8 rules from 'gradual_tail.rb'.
-  2014-11-19 18:36:05.157 [ INFO] 51072 simulair.eur.adobe.com : [main] Going to pull data from CloudWatch for: [Wed, 12 Nov 2014, Thu, 13 Nov 2014, Fri, 14 Nov 2014, Sat, 15 Nov 2014, Sun, 16 Nov 2014, Mon, 17 Nov 2014, Tue, 18 Nov 2014, Wed, 19 Nov 2014]
-  2014-11-19 18:36:05.157 [ INFO] 51072 simulair.eur.adobe.com : [main] Collecting data for 'casino_app' on '2014-11-12'..
+  2014-11-19 18:36:04.470 [ INFO] 51072 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
+  2014-11-19 18:36:04.613 [ WARN] 51072 devbox : [common] Going to run dry! No throughputs will be changed for real.
+  2014-11-19 18:36:05.070 [ INFO] 51072 devbox : [main] Found table 'casino_app', proceeding
+  2014-11-19 18:36:05.152 [ INFO] 51072 devbox : [common] Actioner options: {:group_downscales=>true, :flush_after=>3600}
+  2014-11-19 18:36:05.152 [ INFO] 51072 devbox : [common] Actioner limits: minimum throughput: 10, maximum throughput: 20000
+  2014-11-19 18:36:05.154 [ INFO] 51072 devbox : [common] Loaded 8 rules from 'gradual_tail.rb'.
+  2014-11-19 18:36:05.157 [ INFO] 51072 devbox : [main] Going to pull data from CloudWatch for: [Wed, 12 Nov 2014, Thu, 13 Nov 2014, Fri, 14 Nov 2014, Sat, 15 Nov 2014, Sun, 16 Nov 2014, Mon, 17 Nov 2014, Tue, 18 Nov 2014, Wed, 19 Nov 2014]
+  2014-11-19 18:36:05.157 [ INFO] 51072 devbox : [main] Collecting data for 'casino_app' on '2014-11-12'..
   ....
 ```
 
-Having that done you should be able to run a simulation based upon this data:
+Having that done you should be able to run a simulation based upon the data pulled. Check the output closeley and try to understand what is happening and if it meets your expectations:
 
-    $ dynamo-autoscale test_simulate --config config/dynamo-autoscale.my_project.yml
-
-Check on the output if scaling simulation happens as expected (defined by the ruleset).
+```
+$ dynamo-autoscale test_simulate --config config/dynamo-autoscale.my_project.yml
+```
 
 Each command has an additional help, let's see what `start` allows us to do:
 
@@ -357,33 +369,72 @@ $ dynamo-autoscale help start
         Do not actually change the throughput values.
 ```
 
-Now, let's have a dry run using the `start` command and it's `--dry_run` flag as explained above:
+Now, let's use the `--dry_run` flag as explained above. It will allow us to test quite close to the real thing without messing up. So keep your umbrellas up until you feel safe to take the storm!
 
-    $ dynamo-autoscale --dry_run --config config/dynamo-autoscale.my_project.yml
+```
+$ dynamo-autoscale start --dry_run --config config/dynamo-autoscale.my_project.yml
+...
+2014-11-19 21:54:21.053 [ WARN] 5683 air.jitter.local : [common] Going to run dry! No throughputs will be changed for real.
+...
+```
 
-If something goes wrong it is a good idea to raise the logging level and check on the verbose output:
+Naturally, you need to remove the `--dry_run` option to make a difference for production use.
 
-    $ dynamo-autoscale --dry_run --config config/dynamo-autoscale.my_project.yml --log_level debug
+## Logging
 
-For production use, all of the above is not needed. Just kick the process up using:
+To run `dynamo-autoscale` using a logging level different from default of `info` the `--log_level` option is used.
 
-    $ dynamo-autoscale --config config/dynamo-autoscale.my_project.yml
+    $ dynamo-autoscale start --dry_run --config config/dynamo-autoscale.my_project.yml --log_level debug
+
+Internally, the `aws-sdk` will use the same logger to log equal or greater to level `warn`. So if things fail you should get an idea why. Having tested your setup in depth using `--log_level warn` will reduce the amount of logging waste on production use, see below.
+
+## Exception Handling
+
+Care has been taken to avoid exceptions and catch them if possible. It is possible to raise the logging level to see more verbose messages to increase your chance of diagnosing the issue (or finding a bug!) and get back to us on GitHub. The output can be noisy, so watch out. As far as possible exceptions get logged at level `fatal`, too.
+
+## Expert Quickstart
+
+Experienced users may skip all of the above. Setup a configuration file i.e. `config/dynamo-autoscale.prod.yml` and run:
+
+    $ dynamo-autoscale start --config config/dynamo-autoscale.prod.yml --log_level warn
 
 This can be done in a screen or let the process be managed by [Eye]https://github.com/kostya/eye) or so.
 
 ## Signalling
 
-The `dynamo-autoscale` process responds to the `QUIT` and `SIGUSR1` signal.
+The `dynamo-autoscale` process responds to the `QUIT`, `SIGUSR1` and `SIGUSR2` signals.
 
 ### QUIT
 
 The process will quit gracefully.
 
-### USR1
+### SIGUSR1
 
 If you send `SIGUSR1` the process will dump all of the data it has been collecting on the tables to `STDERR` in JSON format. This can be used to have a logging agent grab the data.
 
-## Scale Report Emails
+### SIGUSR2
+
+If you send `SIGUSR2` the process will output human readable statistics to `STDERR`:
+
+```
+Caught signal USR2! Statistics:
+      Upscales : 0
+    Downscales : 0
+  Lost r/units : 0.0 (0.0%)
+  Lost w/units : 0.0 (0.0%)
+   Lost r/cost : $0.0 (0.0%)
+   Lost w/cost : $0.0 (0.0%)
+ Total r/units : 173.0
+ Total w/units : 146.0
+  Total r/cost : $0.03
+  Total w/cost : $0.02
+Wasted r/units : 173.0 (100.0%)
+Wasted w/units : 146.0 (100.0%)
+ Wasted r/cost : $0.03 (100.0%)
+ Wasted w/cost : $0.02 (100.0%)
+```
+
+## Report Emails
 
 Disabled by default, but ff you would like to receive email notifications whenever a scale event happens, you can specify some email options in your configuration. Specifying the email options implicitly activates email reports. Not including your email config implicitly turns it off.
 
@@ -434,7 +485,7 @@ They're also completely swappable. As long as they implement the right methods y
 
 #### Graphs
 
-Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal `SIGUSR1`.
+Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal `SIGUSR1` and `SIGUSR2`.
 
 ## Contributing
 
