@@ -234,7 +234,7 @@ This technique helps to save downscales on tables that may have unpredictable co
 
 A command line interface is provided to manage `dynamo-autoscale` in a nice way:
 
-```
+``` shell
 $ dynamo-autoscale --help
 
   NAME:
@@ -275,7 +275,8 @@ $ dynamo-autoscale --help
 
 First of all, please set up a suitable configuration for your needs. You can check the YAML structure of the configuration file using the `check_config ` command:
 
-```$ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
+```
+$ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
 
     2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
     2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [main] Configuration file 'config/dynamo-autoscale.yml' seems to be OK.
@@ -299,7 +300,8 @@ First of all, please set up a suitable configuration for your needs. You can che
 
 In addition, the scaling ruleset defined can be checked using the `check_ruleset` command:
 
-```$ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
+```
+$ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
 
   2014-11-19 18:34:45.083 [ INFO] 50854 devbox : [common] Version 0.4.2.2 (working in '/tmp/data') starting up...
   2014-11-19 18:34:45.084 [ INFO] 50854 devbox : [main] Ruleset 'gradual_tail.rb' seems to be OK.
@@ -307,7 +309,8 @@ In addition, the scaling ruleset defined can be checked using the `check_ruleset
 
 To pull 'historic' data from the CloudWatch API the `pull_cw_data` command is used:
 
-```$ dynamo-autoscale pull_cw_data --config config/dynamo-autoscale.my_project.yml
+```
+$ dynamo-autoscale pull_cw_data --config config/dynamo-autoscale.my_project.yml
 
   2014-11-19 18:36:04.470 [ INFO] 51072 simulair.eur.adobe.com : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
   2014-11-19 18:36:04.613 [ WARN] 51072 simulair.eur.adobe.com : [common] Going to run dry! No throughputs will be changed for real.
