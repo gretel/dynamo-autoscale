@@ -225,26 +225,11 @@ describe DynamoAutoscale::TableTracker do
     end
 
     describe "#report!" do
-      context "metric: :units:" do
         it "should not error" do
-          table.report! metric: :units
+          table.report!
         end
-      end
-
-      context "metric: :cost" do
-        it "should not error" do
-          table.report! metric: :cost
-        end
-      end
-
-      context "metric: :bananas" do
-        it "should error" do
-          expect do
-            table.report! metric: :bananas
-          end.to raise_error ArgumentError
-        end
-      end
     end
+
   end
 
   describe 'clearing data' do
