@@ -234,7 +234,7 @@ This technique helps to save downscales on tables that may have unpredictable co
 
 A command line interface is provided to manage `dynamo-autoscale` in a nice way:
 
-``` shell
+```
 $ dynamo-autoscale --help
 
   NAME:
@@ -371,7 +371,7 @@ This can be done in a screen or let the process be managed by [Eye]https://githu
 
 ## Signalling
 
-The `dynamo-autoscale` process responds to the QUIT and SIGUSR1 signal.
+The `dynamo-autoscale` process responds to the `QUIT` and `SIGUSR1` signal.
 
 ### QUIT
 
@@ -379,7 +379,7 @@ The process will quit gracefully.
 
 ### USR1
 
-If you send SIGUSR1 the process will dump all of the data it has been collecting on the tables to STDERR in JSON format. This can be used to have a logging agent grab the data.
+If you send `SIGUSR1` the process will dump all of the data it has been collecting on the tables to `STDERR` in JSON format. This can be used to have a logging agent grab the data.
 
 ## Scale Report Emails
 
@@ -432,7 +432,7 @@ They're also completely swappable. As long as they implement the right methods y
 
 #### Graphs
 
-Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal 'SIGUSR1'.
+Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal `SIGUSR1`.
 
 ## Contributing
 
