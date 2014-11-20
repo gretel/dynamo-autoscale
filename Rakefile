@@ -1,12 +1,12 @@
 require 'rspec/core/rake_task'
 require 'bundler/gem_tasks'
 
-require_relative './lib/dynamo-autoscale/version'
+#require_relative './lib/dynamo-autoscale/version'
 
 STDERR.sync = true
 STDOUT.sync = true
 
-task :default => [:test, :build]
+# task :default => [:test, :build]
 
 desc 'Run all tests'
 RSpec::Core::RakeTask.new(:test)
