@@ -25,11 +25,11 @@ describe DynamoAutoscale::Poller do
     end
 
     it "should correctly dispatch data" do
-      DynamoAutoscale.dispatcher.should_receive(:dispatch).with(
+      expect(DynamoAutoscale.dispatcher).to receive(:dispatch).with(
         table, time1, { consumed_reads: 10 }
       ).once
 
-      DynamoAutoscale.dispatcher.should_receive(:dispatch).with(
+      expect(DynamoAutoscale.dispatcher).to receive(:dispatch).with(
         table, time2, { consumed_reads: 20 }
       ).once
 

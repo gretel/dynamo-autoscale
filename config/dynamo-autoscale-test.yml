@@ -1,15 +1,24 @@
 :aws:
-  :region: "us-east-1"
-:logger:
-  :pretty: true
-  :level: INFO
-  :sync: true
-:ruleset: "default.rb"
+  :access_key_id: nil
+  :secret_access_key: nil
+  :region: "eu-central-1"
+:email:
+  :to: "devop@managing.that.mess.org"
+  :from: "ec2-user@scale.like.hell.com"
+  :via: :smtp
+  :via_options:
+    :port: 25
+    :enable_starttls_auto: false
+    :authentication: :plain
+    :address: "mail.google.com"
+:email_template: "scale_report_email.erb"
+:ruleset: "gradual_tail.rb"
 :tables:
-  - "my_table1"
-  - "my_table2"
-# :dry_run: true
-# :group_downscales: true
-# :flush_after: 3600
-# :minimum_throughput: 10
-# :maximum_throughput: 20000
+  - "casino_app"
+  - "cash_flow"
+  - "market_shares"
+:group_downscales: true
+:flush_after: 3600
+:minimum_throughput: 1
+:maximum_throughput: 20000
+:update_alarms: true

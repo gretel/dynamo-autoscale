@@ -18,44 +18,44 @@ describe DynamoAutoscale::Actioner do
 
     it "should add a scale event to its table" do
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 90).should be_true
-      table.scale_events.should_not be_empty
+      expect(actioner.set(:writes, 90)).to be_truthy
+      expect(table.scale_events).not_to be_empty
     end
 
     it "should not be allowed more than 4 times per day" do
-      actioner.set(:writes, 90).should be_true
+      expect(actioner.set(:writes, 90)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 80).should be_true
+      expect(actioner.set(:writes, 80)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 70).should be_true
+      expect(actioner.set(:writes, 70)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_true
+      expect(actioner.set(:writes, 60)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_false
+      expect(actioner.set(:writes, 60)).to be_falsey
     end
 
     it "is not per metric, it is per table" do
-      actioner.set(:reads,  90).should be_true
+      expect(actioner.set(:reads,  90)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 80).should be_true
+      expect(actioner.set(:writes, 80)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:reads,  70).should be_true
+      expect(actioner.set(:reads,  70)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_true
+      expect(actioner.set(:writes, 60)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_false
+      expect(actioner.set(:writes, 60)).to be_falsey
     end
 
     it "should not be allowed to fall below the minimum throughput" do
       actioner.set(:reads, DynamoAutoscale::Actioner.minimum_throughput - 1)
       time, val = actioner.provisioned_reads.last
-      val.should == DynamoAutoscale::Actioner.minimum_throughput
+      expect(val).to eq(DynamoAutoscale::Actioner.minimum_throughput)
     end
 
     it "should not be allowed to go above the maximum throughput" do
       actioner.set(:reads, DynamoAutoscale::Actioner.maximum_throughput + 1)
       time, val = actioner.provisioned_reads.last
-      val.should == DynamoAutoscale::Actioner.maximum_throughput
+      expect(val).to eq(DynamoAutoscale::Actioner.maximum_throughput)
     end
   end
 
@@ -81,11 +81,11 @@ describe DynamoAutoscale::Actioner do
       Timecop.travel(10.minutes.from_now)
       actioner.set(:writes, 50)
 
-      actioner.provisioned_writes.length.should == 4
-      actioner.downscales.should == 4
-      actioner.upscales.should == 0
+      expect(actioner.provisioned_writes.length).to eq(4)
+      expect(actioner.downscales).to eq(4)
+      expect(actioner.upscales).to eq(0)
       time, value = actioner.provisioned_for(:writes).last
-      value.should == 60
+      expect(value).to eq(60)
 
       Timecop.travel(1.day.from_now.utc.midnight)
 
@@ -99,31 +99,31 @@ describe DynamoAutoscale::Actioner do
       Timecop.travel(10.minutes.from_now)
       actioner.set(:writes, 10)
 
-      actioner.provisioned_writes.length.should == 8
-      actioner.downscales.should == 4
-      actioner.upscales.should == 0
+      expect(actioner.provisioned_writes.length).to eq(8)
+      expect(actioner.downscales).to eq(4)
+      expect(actioner.upscales).to eq(0)
       time, value = actioner.provisioned_for(:writes).last
-      value.should == 20
+      expect(value).to eq(20)
     end
 
     specify "and not a second sooner" do
-      actioner.set(:writes, 90).should be_true
+      expect(actioner.set(:writes, 90)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 80).should be_true
+      expect(actioner.set(:writes, 80)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 70).should be_true
+      expect(actioner.set(:writes, 70)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_true
+      expect(actioner.set(:writes, 60)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 60).should be_false
-      actioner.downscales.should == 4
-      actioner.upscales.should == 0
+      expect(actioner.set(:writes, 60)).to be_falsey
+      expect(actioner.downscales).to eq(4)
+      expect(actioner.upscales).to eq(0)
 
       Timecop.travel(1.day.from_now.utc.midnight - 1.second)
 
-      actioner.set(:writes, 50).should be_false
-      actioner.downscales.should == 4
-      actioner.upscales.should == 0
+      expect(actioner.set(:writes, 50)).to be_falsey
+      expect(actioner.downscales).to eq(4)
+      expect(actioner.upscales).to eq(0)
     end
   end
 
@@ -134,31 +134,31 @@ describe DynamoAutoscale::Actioner do
         provisioned_reads:  100, consumed_reads:  20,
       })
 
-      actioner.set(:writes, 100000).should be_true
+      expect(actioner.set(:writes, 100000)).to be_truthy
     end
 
     it "should only go up to 2x your current provisioned" do
       time, val = actioner.provisioned_writes.last
-      val.should == 200
+      expect(val).to eq(200)
     end
 
     it "can happen as much as it fucking wants to" do
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 200).should be_true
+      expect(actioner.set(:writes, 200)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 300).should be_true
+      expect(actioner.set(:writes, 300)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 400).should be_true
+      expect(actioner.set(:writes, 400)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 500).should be_true
+      expect(actioner.set(:writes, 500)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 600).should be_true
+      expect(actioner.set(:writes, 600)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 700).should be_true
+      expect(actioner.set(:writes, 700)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 800).should be_true
+      expect(actioner.set(:writes, 800)).to be_truthy
       Timecop.travel(10.minutes.from_now)
-      actioner.set(:writes, 900).should be_true
+      expect(actioner.set(:writes, 900)).to be_truthy
       Timecop.travel(10.minutes.from_now)
     end
   end
@@ -179,7 +179,7 @@ describe DynamoAutoscale::Actioner do
       end
 
       it "should not apply a write without an accompanying read" do
-        actioner.provisioned_for(:writes).last.should be_nil
+        expect(actioner.provisioned_for(:writes).last).to be_nil
       end
     end
 
@@ -189,7 +189,7 @@ describe DynamoAutoscale::Actioner do
       end
 
       it "should not apply a read without an accompanying write" do
-        actioner.provisioned_for(:reads).last.should be_nil
+        expect(actioner.provisioned_for(:reads).last).to be_nil
       end
     end
 
@@ -201,10 +201,10 @@ describe DynamoAutoscale::Actioner do
 
       it "should be applied" do
         time, value = actioner.provisioned_for(:reads).last
-        value.should == 30
+        expect(value).to eq(30)
 
         time, value = actioner.provisioned_for(:writes).last
-        value.should == 30
+        expect(value).to eq(30)
       end
     end
 
@@ -226,9 +226,9 @@ describe DynamoAutoscale::Actioner do
         end
 
         it "should flush" do
-          actioner.provisioned_reads.length.should == 1
+          expect(actioner.provisioned_reads.length).to eq(1)
           time, value = actioner.provisioned_reads.last
-          value.should == 10
+          expect(value).to eq(10)
         end
       end
 
@@ -240,9 +240,9 @@ describe DynamoAutoscale::Actioner do
         end
 
         it "should not flush" do
-          actioner.provisioned_reads.length.should == 0
+          expect(actioner.provisioned_reads.length).to eq(0)
           time, value = actioner.provisioned_reads.last
-          value.should be_nil
+          expect(value).to be_nil
         end
       end
     end

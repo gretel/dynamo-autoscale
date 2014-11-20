@@ -30,7 +30,7 @@ describe DynamoAutoscale::TableTracker do
 
   describe 'storing data' do
     specify "should be done in order" do
-      table.data.keys.should == table.data.keys.sort
+      expect(table.data.keys).to eq(table.data.keys.sort)
     end
   end
 
@@ -48,42 +48,42 @@ describe DynamoAutoscale::TableTracker do
 
     describe "#name" do
       subject { table.name }
-      it      { should == table_name }
+      it      { is_expected.to eq(table_name) }
     end
 
     describe "#earliest_data_time" do
       subject { table.earliest_data_time }
-      it      { should == table.data.keys.first }
+      it      { is_expected.to eq(table.data.keys.first) }
     end
 
     describe "#total_read_units" do
       subject { table.total_read_units }
-      it      { should == 1900 }
+      it      { is_expected.to eq(1900) }
     end
 
     describe "#total_write_units" do
       subject { table.total_write_units }
-      it      { should == 2600 }
+      it      { is_expected.to eq(2600) }
     end
 
     describe "#lost_read_units" do
       subject { table.lost_read_units }
-      it      { should == 0 }
+      it      { is_expected.to eq(0) }
     end
 
     describe "#lost_write_units" do
       subject { table.lost_write_units }
-      it      { should == 0 }
+      it      { is_expected.to eq(0) }
     end
 
     describe "#wasted_read_units" do
       subject { table.wasted_read_units }
-      it      { should == 1820 }
+      it      { is_expected.to eq(1820) }
     end
 
     describe "#wasted_write_units" do
       subject { table.wasted_write_units }
-      it      { should == 2480 }
+      it      { is_expected.to eq(2480) }
     end
 
     context 'AWS region us-east' do
@@ -91,138 +91,146 @@ describe DynamoAutoscale::TableTracker do
 
       describe "#total_read_cost" do
         subject { table.total_read_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#total_write_cost" do
         subject { table.total_write_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#total_read_cost" do
         subject { table.total_read_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#lost_write_cost" do
         subject { table.lost_write_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#lost_read_cost" do
         subject { table.lost_read_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#wasted_read_cost" do
         subject { table.wasted_read_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
 
       describe "#wasted_write_cost" do
         subject { table.wasted_write_cost }
-        it      { should be_a Float }
-        it      { should be >= 0 }
+        it      { is_expected.to be_a Float }
+        it      { is_expected.to be >= 0 }
       end
     end
 
     describe "#lost_write_percent" do
       subject { table.lost_write_percent }
-      it      { should be_a Float }
-      it      { should be >= 0 }
-      it      { should be <= 100 }
+      it      { is_expected.to be_a Float }
+      it      { is_expected.to be >= 0 }
+      it      { is_expected.to be <= 100 }
     end
 
     describe "#lost_read_percent" do
       subject { table.lost_read_percent }
-      it      { should be_a Float }
-      it      { should be >= 0 }
-      it      { should be <= 100 }
+      it      { is_expected.to be_a Float }
+      it      { is_expected.to be >= 0 }
+      it      { is_expected.to be <= 100 }
     end
 
     describe "#wasted_read_percent" do
       subject { table.wasted_read_percent }
-      it      { should be_a Float }
-      it      { should be >= 0 }
-      it      { should be <= 100 }
+      it      { is_expected.to be_a Float }
+      it      { is_expected.to be >= 0 }
+      it      { is_expected.to be <= 100 }
     end
 
     describe "#wasted_write_percent" do
       subject { table.wasted_write_percent }
-      it      { should be_a Float }
-      it      { should be >= 0 }
-      it      { should be <= 100 }
+      it      { is_expected.to be_a Float }
+      it      { is_expected.to be >= 0 }
+      it      { is_expected.to be <= 100 }
     end
 
     describe "#last 3.seconds, :consumed_reads" do
       subject { table.last 3.seconds, :consumed_reads }
-      it      { should == [20.0] }
+      it      { is_expected.to eq([20.0]) }
     end
 
     describe "#last 1, :consumed_writes" do
       subject { table.last 1, :consumed_writes }
-      it      { should == [30.0] }
+      it      { is_expected.to eq([30.0]) }
     end
 
     describe "#last_provisioned_for :reads" do
       subject { table.last_provisioned_for :reads }
-      it      { should == 100.0 }
+      it      { is_expected.to eq(100.0) }
     end
 
     describe "#last_provisioned_for :writes, at: now" do
       subject { table.last_provisioned_for :writes, at: now }
-      it      { should == 200.0 }
+      it      { is_expected.to eq(200.0) }
     end
 
     describe "#last_provisioned_for :writes, at: 3.minutes.ago" do
       subject { table.last_provisioned_for :writes, at: 3.minutes.ago }
-      it      { should == 800.0 }
+      it      { is_expected.to eq(800.0) }
     end
 
     describe "#last_provisioned_for :writes, at: 3.hours.ago" do
       subject { table.last_provisioned_for :writes, at: 3.hours.ago }
-      it      { should == nil }
+      it      { is_expected.to eq(nil) }
     end
 
     describe "#last_consumed_for :reads" do
       subject { table.last_consumed_for :reads }
-      it      { should == 20.0 }
+      it      { is_expected.to eq(20.0) }
     end
 
     describe "#last_consumed_for :writes, at: now" do
       subject { table.last_consumed_for :writes, at: now }
-      it      { should == 30.0 }
+      it      { is_expected.to eq(30.0) }
     end
 
     describe "#last_consumed_for :writes, at: 3.minutes.ago" do
       subject { table.last_consumed_for :writes, at: 3.minutes.ago }
-      it      { should == 30.0 }
+      it      { is_expected.to eq(30.0) }
     end
 
     describe "#last_consumed_for :writes, at: 3.hours.ago" do
       subject { table.last_consumed_for :writes, at: 3.hours.ago }
-      it      { should == nil }
+      it      { is_expected.to eq(nil) }
     end
 
     describe "#all_times" do
       subject      { table.all_times }
-      its(:length) { should == 4 }
 
-      specify("is ordered") { subject.should == subject.sort }
+      describe '#length' do
+        subject { super().length }
+        it { is_expected.to eq(4) }
+      end
+
+      specify("is ordered") { expect(subject).to eq(subject.sort) }
     end
 
-    describe "#to_csv!" do
-      let(:tempfile) { Tempfile.new(table_name) }
-      subject        { File.readlines(table.to_csv!(path: tempfile.path)) }
-      its(:count)    { should == 5 }
-      after          { tempfile.unlink }
-    end
+    # describe "#to_csv!" do
+    #   let(:tempfile) { Tempfile.new(table_name) }
+    #   subject        { File.readlines(table.to_csv!(path: tempfile.path)) }
+
+    #   describe '#count' do
+    #     subject { super().count }
+    #     it { is_expected.to eq(5) }
+    #   end
+    #   after          { tempfile.unlink }
+    # end
 
     describe "#report!" do
         it "should not error" do
@@ -237,7 +245,7 @@ describe DynamoAutoscale::TableTracker do
 
     specify "table.data should be totally empty" do
       table.data.keys.each do |key|
-        table.data[key].should be_empty
+        expect(table.data[key]).to be_empty
       end
     end
   end
@@ -265,12 +273,12 @@ describe DynamoAutoscale::TableTracker do
 
     describe 'wasted_read_units' do
       subject { table.wasted_read_units }
-      it      { should == 2.0 }
+      it      { is_expected.to eq(2.0) }
     end
 
     describe 'wasted_write_units' do
       subject { table.wasted_write_units }
-      it      { should == 4.0 }
+      it      { is_expected.to eq(4.0) }
     end
 
     describe 'lost_read_units' do
@@ -283,7 +291,7 @@ describe DynamoAutoscale::TableTracker do
       end
 
       subject { table.lost_read_units }
-      it      { should == 2.0 }
+      it      { is_expected.to eq(2.0) }
     end
 
     describe 'lost_write_units' do
@@ -296,7 +304,7 @@ describe DynamoAutoscale::TableTracker do
       end
 
       subject { table.lost_write_units }
-      it      { should == 5.0 }
+      it      { is_expected.to eq(5.0) }
     end
   end
 
@@ -305,47 +313,51 @@ describe DynamoAutoscale::TableTracker do
 
     describe 'lost_write_units' do
       subject { table.lost_write_units }
-      it      { should == 0.0 }
+      it      { is_expected.to eq(0.0) }
     end
 
     describe 'lost_read_units' do
       subject { table.lost_read_units }
-      it      { should == 0.0 }
+      it      { is_expected.to eq(0.0) }
     end
 
     describe 'wasted_read_units' do
       subject { table.wasted_read_units }
-      it      { should == 0.0 }
+      it      { is_expected.to eq(0.0) }
     end
 
     describe 'wasted_write_units' do
       subject { table.wasted_write_units }
-      it      { should == 0.0 }
+      it      { is_expected.to eq(0.0) }
     end
 
     describe "#all_times" do
       subject      { table.all_times }
-      its(:length) { should == 0 }
+
+      describe '#length' do
+        subject { super().length }
+        it { is_expected.to eq(0) }
+      end
     end
 
     describe "#last 3.seconds, :consumed_reads" do
       subject { table.last 3.seconds, :consumed_reads }
-      it      { should == [] }
+      it      { is_expected.to eq([]) }
     end
 
     describe "#last 1, :consumed_writes" do
       subject { table.last 1, :consumed_writes }
-      it      { should == [] }
+      it      { is_expected.to eq([]) }
     end
 
     describe "#last_provisioned_for :reads" do
       subject { table.last_provisioned_for :reads }
-      it      { should be_nil }
+      it      { is_expected.to be_nil }
     end
 
     describe "#last_provisioned_for :writes" do
       subject { table.last_provisioned_for :writes }
-      it      { should be_nil }
+      it      { is_expected.to be_nil }
     end
   end
 
@@ -362,7 +374,7 @@ describe DynamoAutoscale::TableTracker do
       end
 
       it 'should not work' do
-        table.all_times.should be_empty
+        expect(table.all_times).to be_empty
       end
     end
 
@@ -392,12 +404,12 @@ describe DynamoAutoscale::TableTracker do
       end
 
       it 'should remove data outside of the time window' do
-        table.all_times.length.should == 1
+        expect(table.all_times.length).to eq(1)
       end
 
       it 'should not remove data inside of the time window' do
         table.tick(2.seconds.from_now, {})
-        table.all_times.length.should == 2
+        expect(table.all_times.length).to eq(2)
       end
     end
   end

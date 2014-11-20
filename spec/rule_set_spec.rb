@@ -28,12 +28,20 @@ describe DynamoAutoscale::RuleSet do
 
     describe 'for a single table' do
       subject      { rules.for "test" }
-      its(:length) { should == 4 }
+
+      describe '#length' do
+        subject { super().length }
+        it { is_expected.to eq(4) }
+      end
     end
 
     describe 'for all tables' do
       subject      { rules.for :all }
-      its(:length) { should == 2 }
+
+      describe '#length' do
+        subject { super().length }
+        it { is_expected.to eq(2) }
+      end
     end
   end
 
@@ -72,17 +80,17 @@ describe DynamoAutoscale::RuleSet do
 
       describe 'first block should get called' do
         subject { rules.instance_variable_get(:@__first) }
-        it      { should be_true }
+        it      { is_expected.to be_truthy }
       end
 
       describe 'second block should not get called' do
         subject { rules.instance_variable_get(:@__second) }
-        it      { should be_nil }
+        it      { is_expected.to be_nil }
       end
 
       describe 'third block should not get called' do
         subject { rules.instance_variable_get(:@__third) }
-        it      { should be_nil }
+        it      { is_expected.to be_nil }
       end
     end
   end

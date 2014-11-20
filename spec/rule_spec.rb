@@ -11,7 +11,11 @@ describe DynamoAutoscale::Rule do
     end
 
     subject          { rule }
-    its(:to_english) { should be_a String }
+
+    describe '#to_english' do
+      subject { super().to_english }
+      it { is_expected.to be_a String }
+    end
   end
 
   describe 'invalid rules' do
@@ -183,7 +187,7 @@ describe DynamoAutoscale::Rule do
       end
 
       subject { rule.test(table) }
-      it      { should be_true }
+      it      { is_expected.to be_truthy }
     end
 
     describe 'should not match' do
@@ -202,7 +206,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_false }
+        it      { is_expected.to be_falsey }
       end
 
       context 'rule not satisfied' do
@@ -219,7 +223,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_false }
+        it      { is_expected.to be_falsey }
       end
     end
 
@@ -251,12 +255,16 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_true }
+        it      { is_expected.to be_truthy }
 
         describe "table" do
           subject               { table }
           before                { rule.test(table) }
-          its(:triggered_rules) { should_not be_empty }
+
+          describe '#triggered_rules' do
+            subject { super().triggered_rules }
+            it { is_expected.not_to be_empty }
+          end
         end
       end
 
@@ -288,7 +296,7 @@ describe DynamoAutoscale::Rule do
           end
 
           subject { rule.test(table) }
-          it      { should be_false }
+          it      { is_expected.to be_falsey }
         end
 
         context 'rule not satisfied' do
@@ -310,7 +318,7 @@ describe DynamoAutoscale::Rule do
           end
 
           subject { rule.test(table) }
-          it      { should be_false }
+          it      { is_expected.to be_falsey }
         end
       end
 
@@ -342,7 +350,7 @@ describe DynamoAutoscale::Rule do
           end
 
           subject { rule.test(table) }
-          it      { should be_true }
+          it      { is_expected.to be_truthy }
         end
 
         describe 'should not match' do
@@ -364,7 +372,7 @@ describe DynamoAutoscale::Rule do
           end
 
           subject { rule.test(table) }
-          it      { should be_false }
+          it      { is_expected.to be_falsey }
         end
       end
     end
@@ -397,7 +405,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_true }
+        it      { is_expected.to be_truthy }
       end
 
       describe 'should not match' do
@@ -419,7 +427,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_false }
+        it      { is_expected.to be_falsey }
       end
     end
 
@@ -456,7 +464,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_false }
+        it      { is_expected.to be_falsey }
       end
 
       describe 'should match' do
@@ -490,7 +498,7 @@ describe DynamoAutoscale::Rule do
         end
 
         subject { rule.test(table) }
-        it      { should be_true }
+        it      { is_expected.to be_truthy }
       end
     end
   end # describe 'test'

@@ -27,8 +27,8 @@ describe DynamoAutoscale::Dispatcher do
     it "should correctly dispatch data" do
       DynamoAutoscale.poller.run
 
-      table.data[time1][:consumed_reads].should == 10
-      table.data[time2][:consumed_reads].should == 20
+      expect(table.data[time1][:consumed_reads]).to eq(10)
+      expect(table.data[time2][:consumed_reads]).to eq(20)
     end
   end
 
@@ -48,9 +48,9 @@ describe DynamoAutoscale::Dispatcher do
     it "should correctly dispatch data" do
       DynamoAutoscale.poller.run
 
-      table.data[time1][:consumed_reads].should == 10
-      table.data[time2][:consumed_reads].should == 20
-      table.data.keys.should == [time1, time2]
+      expect(table.data[time1][:consumed_reads]).to eq(10)
+      expect(table.data[time2][:consumed_reads]).to eq(20)
+      expect(table.data.keys).to eq([time1, time2])
     end
   end
 end
