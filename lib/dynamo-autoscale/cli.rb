@@ -5,14 +5,12 @@ module DynamoAutoscale
       require_relative '../../config/environment/common'
 
       raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
-
-      DynamoAutoscale.load_config(File.realpath(options.config), { :dry_run => $dry_run })
-
-      DynamoAutoscale.setup_logger($logger_level)
       DynamoAutoscale.logger.info "[common] Version #{DynamoAutoscale::VERSION} (working in '#{DynamoAutoscale.data_dir}') starting up..."
 
-      unless options.skip_setup
-        DynamoAutoscale.setup
+      if options.skip_setup
+        DynamoAutoscale.load_config(File.realpath(options.config), { :dry_run => $dry_run })
+      else
+        DynamoAutoscale.setup_from_config(File.realpath(options.config), { :dry_run => $dry_run })
       end
 
       begin
@@ -177,10 +175,10 @@ module DynamoAutoscale
       # RubyProf.start
       DynamoAutoscale.poller_class = DynamoAutoscale::RandomDataGenerator
       DynamoAutoscale.poller_opts  = {
-        num_points: 100,
+        num_points: 250,
         start_time: Time.now,
-        provisioned_reads: 600,
-        provisioned_writes: 600,
+        provisioned_reads: 1000,
+        provisioned_writes: 1200,
       }.merge(DynamoAutoscale.poller_opts)
       DynamoAutoscale.logger.debug "[main] Poller options: #{DynamoAutoscale.poller_opts}"
       DynamoAutoscale.poller.run { |table_name, time| Timecop.travel(time) }
