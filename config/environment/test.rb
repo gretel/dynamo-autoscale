@@ -1,15 +1,12 @@
 require 'timecop'
 require 'simplecov'
-
 SimpleCov.start
 
+$logger_level = :error
+TEST_CONFIG = 'dynamo-autoscale-test.yml'
+
 require_relative 'common'
-
-TEST_CONFIG_PATH = DynamoAutoscale.config_dir('dynamo-autoscale-test.yml')
-
-$log_level = :debug
-DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH, { :dry_run => true })
-
+DynamoAutoscale.setup_from_config(DynamoAutoscale.config_dir(TEST_CONFIG), { :dry_run => true })
 DynamoAutoscale.require_in_order(
   'spec/helpers/**.rb'
 )
