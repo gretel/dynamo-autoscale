@@ -2,6 +2,7 @@ require 'csv'
 require 'json'
 require 'rbtree'
 require 'tempfile'
+require 'activesupport'
 
 module DynamoAutoscale
   class TableTracker
