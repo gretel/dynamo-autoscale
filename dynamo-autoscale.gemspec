@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.version = DynamoAutoscale::VERSION
   gem.date    = Date.today.to_s
 
-  gem.summary = 'Autoscaling for DynamoDB provisioned throughputs.'
+  gem.summary = 'Automatic Scaling for DynamoDB.'
   gem.description = 'Will automatically monitor DynamoDB tables and scale them based on rules.'
 
   gem.authors  = ['gretel', 'InvisibleHand']
