@@ -2,9 +2,9 @@ module DynamoAutoscale
   class CLI
 
     def self.run(name, options)
+      raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
       require_relative '../../config/environment/common'
 
-      raise RuntimeError.new("Configuration file '#{options.config}' does not exist") unless File.exists?(options.config)
       DynamoAutoscale.logger.info "[common] Version #{DynamoAutoscale::VERSION} (working in '#{DynamoAutoscale.data_dir}') starting up..."
 
       if options.skip_setup
