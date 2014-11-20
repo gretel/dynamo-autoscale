@@ -1,4 +1,21 @@
+before_install:
+- uname -a
+- 'echo ''gem: --no-document'' > ~/.gemrc'
+- gem update --system
+- bundle config build.nokogiri --use-system-libraries
+env:
+  matrix:
+  - RACK_ENV=test LANG=en_US.UTF-8
+install:
+- bundle install --path vendor/bundle --without development --binstubs --retry 2
 language: ruby
+notifications:
+  email:
+    on_failure: change
+    on_success: change
+    recipients:
+    - travis@jitter.eu
 rvm:
-  - "1.9.3"
-  - "2.0.0"
+- 2.1.5
+script: bundle exec rspec --color --format doc
+services:
