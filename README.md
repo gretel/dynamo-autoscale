@@ -474,6 +474,10 @@ Sample email config:
 
 [Pony](https://github.com/benprew/pony)  is used internally. This part of the configuration just gets passed to Pony. Check out the documentation for more details on the options it supports.
 
+## Graphing
+
+In contrast to the upstream version this fork has graphing disabled for now due to concerns in terms of robustness. You can create graphs using the JSON data. Please see info on `SIGUSR1` and `SIGUSR2` above.
+
 # Developers / Tooling
 
 Everything below this part of the README is intended for people that want to work on the dynamo-autoscale codebase or use the internal tools that we use for testing new rulesets.
@@ -497,10 +501,6 @@ code):
 All of these components are globally available because most of them need access to each other and it was a pain to pass instances of them around to everybody that needed them.
 
 They're also completely swappable. As long as they implement the right methods you can get your data from anywhere, dispatch your data to anywhere and send your actions to whatever you want. The defaults all work on local data gathered with the `script/historic_data` executable.
-
-#### Graphing
-
-In contrast to the upstream version this fork has graphing disabled for now due to concerns in terms of robustness. You can create graphs using the JSON data. Please see info on `SIGUSR1` above.
 
 ## Contributing
 
