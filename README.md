@@ -1,9 +1,26 @@
 # DynamoDB Autoscaling
 [![Build Status](https://travis-ci.org/gretel/dynamo-autoscale.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale)
 
-**FORKED**: This fork is currently not being merged upstream. The original authors do currently neither maintain the project nor do merge pull requests. So i just wanted to progress in terms of quality, no pun intended.
+## Forked - what is different
+
+The original [authors](https://github.com/invisiblehand/dynamo-autoscale/) do currently neither maintain the project nor do merge pull requests. So i got on with this fork! Hope to get my work merged upstream anytime soon.
+
+- Command line interface (CLI) (replacing an executable and various scripts)
+- Streamlined workflow using a chain of commands (`check_config`, `check_ruleset`, `pull_cw_data`, `test_simulate`, `start`) using the CLI. Easy for DevOp use with Puppetchefansiblesalt.
+- Revamped logging (syntactically, semantically, and using Yell yo!)
+- Improved robustness (added sanity checks, exception handling)
+- Can be installed and used without any superuser privileges (requires Rubygems :)
+- Fixed some logic glitches (nothing major though)
+- Supports EC2 region 'eu-central-1'
+- Works on Ruby 2.1 (tested using 2.1.5 as on AMI)
+- Tests migrated to RSpec 3
+- Reduced gem-dependencies and disabled some dusky codedpaths
+- Overall code cleanup and various tweaks applied
+- Added documentation
 
 **IMPORTANT**: Please read carefully before continuing! This tool, if used incorrectly, has the potential to cost you huge amounts of money. Proceeding with caution is mandatory, as we cannot be held responsible for misuse that leads to excessive cost on your AWS account.
+
+## $$$ Warning
 
 The command line tool has a --dry_run flag to test your configuration before actually changing the provisioned throughput values. It is highly recommended that you first try running dry and inspect the output to make sure this tool works as expected. Thank you!
 
@@ -243,7 +260,7 @@ The alarm thresholds will be updated automatically. To disable this behaviour (o
 
     :update_alarms: false
 
-## Using the CLI
+# Using the CLI - Running the tool
 
 A command line interface is provided to manage `dynamo-autoscale` in a nice way. Requiring the gem to be installed as described above you can use your terminal shell of choice to call the command like:
 
@@ -275,7 +292,7 @@ The output will be
   GLOBAL OPTIONS:
 
     --log_level LEVEL
-        Set logging level (debug, info, warn, error, fatal). Default is 'info'.
+        Set logging level (debug, info, warn, error, fatal).
 
     -h, --help
         Display help documentation
@@ -285,14 +302,12 @@ The output will be
 
     -t, --trace
         Display backtrace when an error occurs
-
 ```
 
 First of all, please set up a suitable configuration for your needs. You can check the YAML structure of the configuration file using the `check_config ` command:
 
 ```
 $ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
-
     2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
     2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [main] Configuration file 'config/dynamo-autoscale.yml' seems to be OK.
     Dumping parsed configuration in YAML:
@@ -317,7 +332,6 @@ In addition, the scaling ruleset defined can be checked using the `check_ruleset
 
 ```
 $ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
-
   2014-11-19 18:34:45.083 [ INFO] 50854 devbox : [common] Version 0.4.2.2 (working in '/tmp/data') starting up...
   2014-11-19 18:34:45.084 [ INFO] 50854 devbox : [main] Ruleset 'gradual_tail.rb' seems to be OK.
 ```
@@ -346,7 +360,7 @@ $ dynamo-autoscale test_simulate --config config/dynamo-autoscale.my_project.yml
 Each command has an additional help, let's see what `start` allows us to do:
 
 ```
-$ dynamo-autoscale help start
+$ dynamo-autoscale start --help
 
   NAME:
 
@@ -485,7 +499,7 @@ They're also completely swappable. As long as they implement the right methods y
 
 #### Graphs
 
-Graphing is disabled for now due to concerns in terms of robustness. You can create graphs using JSON data, please see info on signal `SIGUSR1` and `SIGUSR2`.
+In contrast to the upstream version this fork has graphing disabled for now due to concerns in terms of robustness. You can create graphs using the JSON data. Please see info on `SIGUSR1` above.
 
 ## Contributing
 
