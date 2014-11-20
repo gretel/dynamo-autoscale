@@ -261,7 +261,7 @@ The alarm thresholds will be updated automatically. To disable this behaviour (o
 
     :update_alarms: false
 
-# Using the CLI - Running the tool
+## Using the tool
 
 A command line interface is provided to manage `dynamo-autoscale` in a nice way. Requiring the gem to be installed as described above you can use your terminal shell of choice to call the command like:
 
@@ -519,8 +519,4 @@ Report Issues/Feature requests on
 
 ### Copyright
 
-Copyright (c) 2013 InvisibleHand Software Ltd.
-
-Copyright (c) 2014 Tom Hensel IT Services
-
-See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
+Copyright (c) 2013 InvisibleHand Software Ltd., Copyright (c) 2014 Tom Hensel IT Services. See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
