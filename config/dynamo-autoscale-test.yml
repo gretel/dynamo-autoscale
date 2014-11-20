@@ -1,6 +1,6 @@
 :aws:
-  :access_key_id: nil
-  :secret_access_key: nil
+  :access_key_id: "AKIAIOIFEKW4PBNKV5EQ"
+  :secret_access_key: "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"
   :region: "eu-central-1"
 :email:
   :to: "devop@managing.that.mess.org"

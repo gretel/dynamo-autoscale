@@ -13,6 +13,7 @@ RSpec::Core::RakeTask.new(:test)
 
 desc 'Build Gem'
 task :build do
+  `git pull`
   success = system('gem build dynamo-autoscale.gemspec')
   raise RuntimeError.new('gem build failed, aborting.') unless success
 end
