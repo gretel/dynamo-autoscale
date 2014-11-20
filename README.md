@@ -1,26 +1,26 @@
-# DynamoDB Autoscaling
-[![Build Status](https://travis-ci.org/gretel/dynamo-autoscale.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale)
+# dynamo-autoscale-fork - Automatic Scaling for DynamoDB
+[![Build Status](https://travis-ci.org/gretel/dynamo-autoscale-fork.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale-fork)
 
 ## Forked - what is different
 
 The original [authors](https://github.com/invisiblehand/dynamo-autoscale/) do currently neither maintain the project nor do merge pull requests. So i got on with this fork! Hope to get my work merged upstream anytime soon.
 
 - Command line interface (CLI) (replacing an executable and various scripts)
-- Streamlined workflow using a chain of commands (`check_config`, `check_ruleset`, `pull_cw_data`, `test_simulate`, `start`) using the CLI. Easy for DevOp use with Puppetchefansiblesalt.
+- Streamlined workflow using a chain of commands (`check_config`, `check_ruleset`, `pull_cw_data`, `test_simulate`, `start`) using the CLI
 - Revamped logging (syntactically, semantically, and using Yell yo!)
-- Improved robustness (added sanity checks, exception handling)
-- Can be installed and used without any superuser privileges (requires Rubygems :)
-- Fixed some logic glitches (nothing major though)
+- Can be installed and used without any superuser privileges
 - Supports EC2 region 'eu-central-1'
 - Works on Ruby 2.1 (tested using 2.1.5 as on AMI)
 - Tests migrated to RSpec 3
+- Fixed some logic glitches (nothing major though)
+- Improved robustness (added sanity checks, exception handling)
 - Reduced gem-dependencies and disabled some dusky codedpaths
 - Overall code cleanup and various tweaks applied
 - Added documentation
 
-**IMPORTANT**: Please read carefully before continuing! This tool, if used incorrectly, has the potential to cost you huge amounts of money. Proceeding with caution is mandatory, as we cannot be held responsible for misuse that leads to excessive cost on your AWS account.
-
 ## $$$ Warning
+
+**IMPORTANT**: Please read carefully before continuing! This tool, if used incorrectly, has the potential to cost you huge amounts of money. Proceeding with caution is mandatory, as we cannot be held responsible for misuse that leads to excessive cost on your AWS account.
 
 The command line tool has a --dry_run flag to test your configuration before actually changing the provisioned throughput values. It is highly recommended that you first try running dry and inspect the output to make sure this tool works as expected. Thank you!
 
@@ -49,7 +49,7 @@ This project aims to take all of this into consideration and automatically scale
 
 There is no gem of this fork in the Rubygems index currently. Therefore, you need to download a local copy of this gem and install it manually:
 
-    $ gem install dynamo-autoscale-0.4.2.2.gem
+    $ gem install dynamo-autoscale-0.4.3.gem
 
 This will install the gem containing the `dynamo-autoscale` executable. Please check the Rubygems documentation on where to expect the executable to be located. On Amazon Linux it will be in `/usr/local/bin`/. You might have to adjust your PATH environment variable accordingly.
 
@@ -323,7 +323,7 @@ $ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
     - market_shares
     :group_downscales: true
     :flush_after: 3600
-    :minimum_throughput: 10
+    :minimum throughput: 10
     :maximum_throughput: 20000
     :dry_run:
 ```
@@ -418,15 +418,15 @@ This can be done in a screen or let the process be managed by [Eye]https://githu
 
 The `dynamo-autoscale` process responds to the `QUIT`, `SIGUSR1` and `SIGUSR2` signals.
 
-### QUIT
+### QUIT - Bye ...
 
 The process will quit gracefully.
 
-### SIGUSR1
+### SIGUSR1: Dump JSON
 
 If you send `SIGUSR1` the process will dump all of the data it has been collecting on the tables to `STDERR` in JSON format. This can be used to have a logging agent grab the data.
 
-### SIGUSR2
+### SIGUSR2: Human readble statistics
 
 If you send `SIGUSR2` the process will output human readable statistics to `STDERR`:
 
@@ -497,21 +497,20 @@ All of these components are globally available because most of them need access 
 
 They're also completely swappable. As long as they implement the right methods you can get your data from anywhere, dispatch your data to anywhere and send your actions to whatever you want. The defaults all work on local data gathered with the `script/historic_data` executable.
 
-#### Graphs
+#### Graphing
 
 In contrast to the upstream version this fork has graphing disabled for now due to concerns in terms of robustness. You can create graphs using the JSON data. Please see info on `SIGUSR1` above.
 
 ## Contributing
 
 Report Issues/Feature requests on
-[GitHub Issues](https://github.com/gretel/dynamo-autoscale/issues).
+[GitHub Issues](https://github.com/gretel/dynamo-autoscale-fork/issues).
 
 #### Note on Patches/Pull Requests
 
  * Fork the project.
  * Make your feature addition or bug fix.
- * Add tests for it. This is important so we don't break it in a future version
- 	 unintentionally.
+ * Add tests for it. This is important so we don't break it in a future version unintentionally.
  * Commit, do not modify the rakefile, version, or history.  (if you want to have your own version, that is fine but bump version in a commit by itself so it can be ignored when we pull)
  * Send a pull request. Bonus points for topic branches.
 
@@ -519,4 +518,4 @@ Report Issues/Feature requests on
 
 Copyright (c) 2013 InvisibleHand Software Ltd.
 Copyright (c) 2014 Tom Hensel IT Services
-See [LICENSE](https://github.com/gretel/dynamo-autoscale/blob/master/LICENSE) for details.
+See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
