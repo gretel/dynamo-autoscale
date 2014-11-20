@@ -1,12 +1,7 @@
-ENV['RACK_ENV'] = "test"
-
-# SimpleCov seems to get confused when you load a file into your code multiple
-# times. It will wipe all of its current data about that file when it gets
-# reloaded, so some of our coverage stats are less than they should be.
-require 'simplecov'
-SimpleCov.start
-
 require 'timecop'
+require 'simplecov'
+
+SimpleCov.start
 
 require_relative 'common'
 
