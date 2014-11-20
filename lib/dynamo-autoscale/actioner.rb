@@ -1,10 +1,10 @@
+# TODO: abstraction
+MAX_DOWNSCALES = 4
+
 module DynamoAutoscale
   class Actioner
     include DynamoAutoscale::Logger
     attr_accessor :table, :upscales, :downscales
-
-    # TODO: abstraction
-    MAX_DOWNSCALES = 4
 
     def self.minimum_throughput
       @minimum_throughput ||= 10
@@ -53,7 +53,7 @@ module DynamoAutoscale
         logger.info "[actioner] A day has passed. Resetting scaling counts back to zero.."
         # logger.debug "[actioner] Now: #{now}, Comparison: #{check}"
         if @downscales < MAX_DOWNSCALES
-          logger.warn "[actioner] Downscales done for last day: #{@downscales} of #{MAX_DOWNSCALES}."
+          logger.info "[actioner] Downscales done for today: #{@downscales}."
         end
 
         @upscales = 0
@@ -174,12 +174,9 @@ module DynamoAutoscale
           @downscales += 1
           @last_action = Time.now.utc
           return true
-        else
-          return false
         end
-      else
-        return false
       end
+      return false
     end
 
     def flush_operations!
