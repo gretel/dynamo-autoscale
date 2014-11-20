@@ -5,7 +5,7 @@ module DynamoAutoscale
     # TODO: abstraction
     DEFAULT_OPTS = {
       namespace: 'AWS/DynamoDB',
-      period: 5.minutes,
+      period: 300,
     }
 
     # Returns a hash of timeseries data. Looks a bit like this:
