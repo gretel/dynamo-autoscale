@@ -2,11 +2,6 @@ require_relative '../../lib/dynamo-autoscale/logger'
 require_relative '../../lib/dynamo-autoscale/actioner'
 require_relative '../../lib/dynamo-autoscale/poller'
 
-# TODO: abstraction
-LOGGER_LEVEL_DEFAULT = :info
-LOGGER_FORMAT = "%d [%5L] %p %h : %m"
-LOGGER_TIME_FORMAT = "%F %T.%L"
-
 VALID_REGIONS = [
   'ap-northeast-1', 'ap-southeast-1', 'ap-southeast-2',
   'us-east-1', 'us-west-1', 'us-west-2',
@@ -59,22 +54,6 @@ module DynamoAutoscale
     expand_paths(*files).each { |path| require path }
   end
 
-  def self.setup_logger(log_level)
-    require 'yell'
-
-    # dont buffer these, might be important
-    STDERR.sync = true
-
-    # enforce logging level defaults if unset
-    $logger_level ||= LOGGER_LEVEL_DEFAULT
-
-    # see https://github.com/rudionrails/yell .. https://github.com/rudionrails/yell/wiki/101-formatting-log-messages
-    DynamoAutoscale::Logger.logger = Yell.new do |l|
-      l.adapter :stdout, level: "gte.#{$logger_level}", format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
-      # l.adapter :stderr, level: [:error, :fatal], format: Yell.format(LOGGER_FORMAT, LOGGER_TIME_FORMAT)
-    end
-  end
-
   def self.load_config path, overrides = {}
     begin
       self.config = YAML.load_file(path).merge(overrides)
@@ -91,10 +70,10 @@ module DynamoAutoscale
 
     aws_config = DynamoAutoscale.config[:aws].merge(:logger => DynamoAutoscale.logger, :log_level => :debug)
 
-    raise DynamoAutoscale::Error::InvalidConfigurationError.new('You must specify a :region key in' +
+    raise RuntimeError.new('You must specify a :region key in' +
       ' the :aws section of your dynamo-autoscale configuration file!') unless aws_config[:region]
 
-    DynamoAutoscale::Logger.logger.warn "Specified region '#{aws_config[:region]}'" +
+     DynamoAutoscale::Logger.logger.warn "Specified region '#{aws_config[:region]}'" +
       ' does not appear in the list of known regions.' +
       ' Proceed with caution!' unless VALID_REGIONS.include?(aws_config[:region])
 
@@ -105,7 +84,9 @@ module DynamoAutoscale
     end
   end
 
-  def self.setup
+  def self.setup_from_config path, overrides = {}
+    self.load_config path, overrides
+
     if self.config[:tables].nil? or config[:tables].empty?
       raise RuntimeError.new("You need to configure at " +
         "least one table in the :tables section of the configuration file.")
@@ -121,7 +102,7 @@ module DynamoAutoscale
 
     # connect to the thing in the sky
     DynamoAutoscale.setup_aws
-    # enforce default
+
     if config[:dry_run]
       filters = DynamoAutoscale::LocalActioner.faux_provisioning_filters
       logger.warn '[common] Going to run dry! No throughputs will be changed for real.'
