@@ -1,4 +1,5 @@
-# dynamo-autoscale-fork - Automatic Scaling for DynamoDB
+# Automatic Scaling for DynamoDB
+
 [![Build Status](https://travis-ci.org/gretel/dynamo-autoscale-fork.png?branch=master)](https://travis-ci.org/gretel/dynamo-autoscale-fork)
 
 ## Forked - what is different
@@ -412,13 +413,13 @@ Experienced users may skip all of the above. Setup a configuration file i.e. `co
 
     $ dynamo-autoscale start --config config/dynamo-autoscale.prod.yml --log_level warn
 
-This can be done in a screen or let the process be managed by [Eye]https://github.com/kostya/eye) or so.
+This can be done in a screen or let the process be managed by [Eye](https://github.com/kostya/eye) or so.
 
 ## Signalling
 
 The `dynamo-autoscale` process responds to the `QUIT`, `SIGUSR1` and `SIGUSR2` signals.
 
-### QUIT - Bye ...
+### QUIT
 
 The process will quit gracefully.
 
@@ -509,13 +510,17 @@ Report Issues/Feature requests on
 #### Note on Patches/Pull Requests
 
  * Fork the project.
- * Make your feature addition or bug fix.
- * Add tests for it. This is important so we don't break it in a future version unintentionally.
- * Commit, do not modify the rakefile, version, or history.  (if you want to have your own version, that is fine but bump version in a commit by itself so it can be ignored when we pull)
- * Send a pull request. Bonus points for topic branches.
+ * Have a branch for your feature.
+ * Implement feaure.
+ * Add tests. This is important so we don't break it in a future version unintentionally.
+ * Commit and push.
+ * Send a pull request ('feature-branch'/master).
+ * Thank you!
 
 ### Copyright
 
 Copyright (c) 2013 InvisibleHand Software Ltd.
+
 Copyright (c) 2014 Tom Hensel IT Services
+
 See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
