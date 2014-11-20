@@ -309,7 +309,7 @@ First of all, please set up a suitable configuration for your needs. You can che
 
 ```
 $ dynamo-autoscale check_config --config config/dynamo-autoscale.my_project.yml
-    2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
+    2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [common] Version 0.4.3 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
     2014-11-19 18:32:36.093 [ INFO] 50703 devbox : [main] Configuration file 'config/dynamo-autoscale.yml' seems to be OK.
     Dumping parsed configuration in YAML:
     ---
@@ -333,7 +333,7 @@ In addition, the scaling ruleset defined can be checked using the `check_ruleset
 
 ```
 $ dynamo-autoscale check_ruleset --config config/dynamo-autoscale.my_project.yml
-  2014-11-19 18:34:45.083 [ INFO] 50854 devbox : [common] Version 0.4.2.2 (working in '/tmp/data') starting up...
+  2014-11-19 18:34:45.083 [ INFO] 50854 devbox : [common] Version 0.4.3 (working in '/tmp/data') starting up...
   2014-11-19 18:34:45.084 [ INFO] 50854 devbox : [main] Ruleset 'gradual_tail.rb' seems to be OK.
 ```
 
@@ -341,7 +341,7 @@ To pull 'historic' data from the CloudWatch API (currently the timerange is a ha
 
 ```
 $ dynamo-autoscale pull_cw_data --config config/dynamo-autoscale.my_project.yml
-  2014-11-19 18:36:04.470 [ INFO] 51072 devbox : [common] Version 0.4.2.2 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
+  2014-11-19 18:36:04.470 [ INFO] 51072 devbox : [common] Version 0.4.3 (working in '/Users/tom/Sync/prjcts/dynamo-autoscale/data') starting up...
   2014-11-19 18:36:04.613 [ WARN] 51072 devbox : [common] Going to run dry! No throughputs will be changed for real.
   2014-11-19 18:36:05.070 [ INFO] 51072 devbox : [main] Found table 'casino_app', proceeding
   2014-11-19 18:36:05.152 [ INFO] 51072 devbox : [common] Actioner options: {:group_downscales=>true, :flush_after=>3600}
