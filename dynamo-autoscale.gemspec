@@ -3,16 +3,16 @@ require 'date'
 require './lib/dynamo-autoscale/version'
 
 Gem::Specification.new do |gem|
-  gem.name    = 'dynamo-autoscale'
+  gem.name    = 'dynamo-autoscale-fork'
   gem.version = DynamoAutoscale::VERSION
   gem.date    = Date.today.to_s
 
-  gem.summary = "Autoscaling for DynamoDB provisioned throughputs."
-  gem.description = "Will automatically monitor DynamoDB tables and scale them based on rules."
+  gem.summary = 'Autoscaling for DynamoDB provisioned throughputs.'
+  gem.description = 'Will automatically monitor DynamoDB tables and scale them based on rules.'
 
-  gem.authors  = ['InvisibleHand', 'gretel']
-  gem.email    = 'developers@getinvisiblehand.com'
-  gem.homepage = 'http://github.com/invisiblehand/dynamo-autoscale'
+  gem.authors  = ['gretel', 'InvisibleHand']
+  gem.email    = 'github@jitter.eu'
+  gem.homepage = 'http://github.com/gretel/dynamo-autoscale-fork'
 
   gem.bindir      = ['bin']
   gem.executables = ['dynamo-autoscale']
@@ -21,8 +21,8 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = '>= 1.9.3'
 
-  gem.requirements << "If you want to graph your tables, you'll need R with " +
-    "the ggplot and reshape packages installed."
+  # gem.requirements << 'If you want to graph your tables, you'll need R with ' +
+  #   'the ggplot and reshape packages installed.'
 
   gem.add_runtime_dependency 'activesupport', '~> 4.1'
   gem.add_runtime_dependency 'aws-sdk-v1', '~> 1'

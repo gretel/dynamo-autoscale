@@ -17,5 +17,5 @@ notifications:
     - travis@jitter.eu
 rvm:
 - 2.1.5
-script: bundle exec rspec --color --format doc
+script: bundle exec rake test
 services:

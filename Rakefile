@@ -6,11 +6,12 @@ require_relative './lib/dynamo-autoscale/version'
 STDERR.sync = true
 STDOUT.sync = true
 
-# task :default => [:test]
-desc "Run all tests"
+task :default => [:test, :build]
+
+desc 'Run all tests'
 RSpec::Core::RakeTask.new(:test)
 
-desc "Build gem"
+desc 'Build Gem'
 task :build do
   success = system('gem build dynamo-autoscale.gemspec')
   raise RuntimeError.new('gem build failed, aborting.') unless success
