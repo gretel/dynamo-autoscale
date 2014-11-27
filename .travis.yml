@@ -5,7 +5,7 @@ before_install:
 - bundle config build.nokogiri --use-system-libraries
 env:
   matrix:
-  - RACK_ENV=test LANG=en_US.UTF-8
+  - LANG=en_US.UTF-8
   global:
   - secure: PlQKfXILwBQQCmK3n/NUg/c0Mt+2eWCy+WII7OWcyowG4btvX9Tl1BTWiBVNyO9Jj41LuG7B28Sn3yQPTPil1FNRzaoNTkW1fcjDg3GEv4QiwoqUdLENvDBhfXPDxXpbnhIDJFXWc9WxhvfZm68CEet8/jcCD/KWsvTz9kb0UXA=
   - secure: fiiAFa8p9pMuM3c9EZ+nb+lYv+CG1mQpPqSeqkMB6u1UBGNOpEoVJi/G//OVtoajDww3J3QvCqMeC5qF84gfsZLQCLRhjak2ne29ztS8x0H5fvz0v85aHbZHL0HwzEosrn0TZiKGHstm9EVe1hAh9/uMrUG1QlQB1OHbjJ88tFc=
@@ -22,4 +22,4 @@ notifications:
 rvm:
 - 2.1.5
 script: bundle exec rake test
-services: 
+services:
