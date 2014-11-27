@@ -73,9 +73,56 @@ This library requires AWS access right for CloudWatch and DynamoDB to retrieve d
   - "dynamodb:DescribeTable"
   - "dynamodb:ListTables"
   - "dynamodb:UpdateTable"
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1417095288000",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:DescribeTable",
+        "dynamodb:ListTables",
+        "dynamodb:UpdateTable"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+```
+
+The ARN for the custom policy can be specified as '\*' to allow access to all tables. This is required for the `lament_wastage` command.
+
+The feature to update CloudWatch alarms (`:update_alarms`) on is enabled per default, please allow
+
   - "cloudwatch:PutMetricAlarm"
 
-The ARN for the custom policy can be specified as '\*' to allow access to all tables. This is required for the 'lament_wastage' command. Please refer to the IAM documentation on how to set fine-grained access limits.
+accordingly:
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1417095341000",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutMetricAlarm"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+```
+
+or disable the feature. *Warning*: You should avoid using wildcards for production use at all!
+
+Please refer to the IAM documentation on how to set fine-grained access limits.
 
 ### Minimal "getting started" configuration
 
@@ -512,7 +559,7 @@ They're also completely swappable. As long as they implement the right methods y
 
 ## RSpec Tests
 
-A rake task wraps the test suite to run for testing. Please change the values in `config/dynamo-autoscale-test.yml` to reflect your credentials. Nothing else should be changed. Then, please execute
+A Rake task wraps the test suite to be run for testing. Please change the values in `config/dynamo-autoscale-test.yml` to reflect your credentials. Please remember to create the tables as specified, or change the configuration accordingly. Nothing else should be changed. Then, please execute
 
 ```
 $ bundle exec rake test
@@ -522,7 +569,7 @@ and check the results.
 
 ## Travis CI
 
-Continous intgeration is done using Travis. Please keep in mind the tests require AWS credential to run and the author's credentials encrypted in  `.travis.yml` will not work for you. You have to setup Travis on your own.
+Continous intgeration is done using Travis. Please keep in mind the tests require AWS credential to run and the author's credentials encrypted in  `.travis.yml` will not work for you. You have to setup Travis on your own yo!
 
 The configuration values will be overriden as follows (symbolic code):
 
