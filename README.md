@@ -569,11 +569,12 @@ and check the results.
 
 ## Travis CI
 
-Continous intgeration is done using Travis. Please keep in mind the tests require AWS credential to run and the author's credentials encrypted in  `.travis.yml` will not work for you. You have to setup Travis on your own yo!
+Continous intgeration is done using [Travis](https://travis-ci.org/gretel/dynamo-autoscale-fork). Please keep in mind the tests require AWS credentials to run and the author's credentials encrypted in  `.travis.yml` will not work for you. You have to setup Travis on your own yo!
 
 The configuration values will be overriden as follows (symbolic code):
 
 ```
+config[:aws][:region] = ENV['AWS_REGION']
 config[:aws][:access_key_id] = ENV['AWS_ACCESS_KEY']
 config[:aws][:secret_access_key] = ENV['AWS_SECRET_KEY']
 ```
