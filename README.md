@@ -522,9 +522,9 @@ and check the results.
 
 ## Travis CI
 
-Continous intgeration is done using Travis. Please keep in mind the test requires AWS credentials, therefore the author is not commiting his `.travis.yml` file containing the encrypted credentials. You have to setup Travis on your own.
+Continous intgeration is done using Travis. Please keep in mind the tests require AWS credential to run and the author's credentials encrypted in  `.travis.yml` will not work for you. You have to setup Travis on your own.
 
-The configuration values will be overriden as follows:
+The configuration values will be overriden as follows (symbolic code):
 
 ```
 config[:aws][:access_key_id] = ENV['AWS_ACCESS_KEY']
