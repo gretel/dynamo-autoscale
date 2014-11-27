@@ -11,8 +11,8 @@ describe DynamoAutoscale::Actioner do
   describe "scaling down" do
     before do
       table.tick(5.minutes.ago, {
-        provisioned_writes: 15000, consumed_writes: 50,
-        provisioned_reads:  15000, consumed_reads:  20,
+                   provisioned_writes: 15000, consumed_writes: 50,
+                   provisioned_reads:  15000, consumed_reads:  20,
       })
     end
 
@@ -62,8 +62,8 @@ describe DynamoAutoscale::Actioner do
   describe "scale resets" do
     before do
       table.tick(5.minutes.ago, {
-        provisioned_writes: 100, consumed_writes: 50,
-        provisioned_reads:  100, consumed_reads:  20,
+                   provisioned_writes: 100, consumed_writes: 50,
+                   provisioned_reads:  100, consumed_reads:  20,
       })
     end
 
@@ -130,8 +130,8 @@ describe DynamoAutoscale::Actioner do
   describe "scaling up" do
     before do
       table.tick(5.minutes.ago, {
-        provisioned_writes: 100, consumed_writes: 50,
-        provisioned_reads:  100, consumed_reads:  20,
+                   provisioned_writes: 100, consumed_writes: 50,
+                   provisioned_reads:  100, consumed_reads:  20,
       })
 
       expect(actioner.set(:writes, 100000)).to be_truthy
@@ -168,8 +168,8 @@ describe DynamoAutoscale::Actioner do
 
     before do
       table.tick(5.minutes.ago, {
-        provisioned_writes: 100, consumed_writes: 50,
-        provisioned_reads:  100, consumed_reads:  20,
+                   provisioned_writes: 100, consumed_writes: 50,
+                   provisioned_reads:  100, consumed_reads:  20,
       })
     end
 
@@ -211,8 +211,8 @@ describe DynamoAutoscale::Actioner do
     describe "flushing after a period of time" do
       let(:actioner) do
         DynamoAutoscale::LocalActioner.new(table, {
-          group_downscales: true,
-          flush_after: 5.minutes,
+                                             group_downscales: true,
+                                             flush_after: 5.minutes,
         })
       end
 

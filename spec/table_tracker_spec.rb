@@ -7,24 +7,24 @@ describe DynamoAutoscale::TableTracker do
 
   before do
     table.tick(5.seconds.ago, {
-      provisioned_reads: 600.0,
-      provisioned_writes: 800.0,
-      consumed_reads: 20.0,
-      consumed_writes: 30.0,
+                 provisioned_reads: 600.0,
+                 provisioned_writes: 800.0,
+                 consumed_reads: 20.0,
+                 consumed_writes: 30.0,
     })
 
     table.tick(5.minutes.ago, {
-      provisioned_reads: 600.0,
-      provisioned_writes: 800.0,
-      consumed_reads: 20.0,
-      consumed_writes: 30.0,
+                 provisioned_reads: 600.0,
+                 provisioned_writes: 800.0,
+                 consumed_reads: 20.0,
+                 consumed_writes: 30.0,
     })
 
     table.tick(15.seconds.ago, {
-      provisioned_reads: 600.0,
-      provisioned_writes: 800.0,
-      consumed_reads: 20.0,
-      consumed_writes: 30.0,
+                 provisioned_reads: 600.0,
+                 provisioned_writes: 800.0,
+                 consumed_reads: 20.0,
+                 consumed_writes: 30.0,
     })
   end
 
@@ -39,10 +39,10 @@ describe DynamoAutoscale::TableTracker do
 
     before do
       table.tick(now, {
-        provisioned_reads: 100.0,
-        provisioned_writes: 200.0,
-        consumed_reads: 20.0,
-        consumed_writes: 30.0,
+                   provisioned_reads: 100.0,
+                   provisioned_writes: 200.0,
+                   consumed_reads: 20.0,
+                   consumed_writes: 30.0,
       })
     end
 
@@ -233,9 +233,9 @@ describe DynamoAutoscale::TableTracker do
     # end
 
     describe "#report!" do
-        it "should not error" do
-          table.report!
-        end
+      it "should not error" do
+        table.report!
+      end
     end
 
   end
@@ -255,19 +255,19 @@ describe DynamoAutoscale::TableTracker do
       table.clear_data
 
       table.tick(3.seconds.ago, {
-        provisioned_reads: 100.0,
-        consumed_reads:    99.0,
+                   provisioned_reads: 100.0,
+                   consumed_reads:    99.0,
 
-        provisioned_writes: 200.0,
-        consumed_writes:    198.0,
+                   provisioned_writes: 200.0,
+                   consumed_writes:    198.0,
       })
 
       table.tick(12.seconds.ago, {
-        provisioned_reads: 100.0,
-        consumed_reads:    99.0,
+                   provisioned_reads: 100.0,
+                   consumed_reads:    99.0,
 
-        provisioned_writes: 200.0,
-        consumed_writes:    198.0,
+                   provisioned_writes: 200.0,
+                   consumed_writes:    198.0,
       })
     end
 
@@ -285,8 +285,8 @@ describe DynamoAutoscale::TableTracker do
       before do
         table.clear_data
         table.tick(12.seconds.ago, {
-          provisioned_reads: 100.0,
-          consumed_reads:    102.0,
+                     provisioned_reads: 100.0,
+                     consumed_reads:    102.0,
         })
       end
 
@@ -298,8 +298,8 @@ describe DynamoAutoscale::TableTracker do
       before do
         table.clear_data
         table.tick(12.seconds.ago, {
-          provisioned_writes: 100.0,
-          consumed_writes:    105.0,
+                     provisioned_writes: 100.0,
+                     consumed_writes:    105.0,
         })
       end
 
@@ -366,10 +366,10 @@ describe DynamoAutoscale::TableTracker do
       before do
         table.clear_data
         table.tick(12.weeks.ago, {
-          provisioned_reads: 600.0,
-          provisioned_writes: 800.0,
-          consumed_reads: 20.0,
-          consumed_writes: 30.0,
+                     provisioned_reads: 600.0,
+                     provisioned_writes: 800.0,
+                     consumed_reads: 20.0,
+                     consumed_writes: 30.0,
         })
       end
 
@@ -384,10 +384,10 @@ describe DynamoAutoscale::TableTracker do
         Timecop.travel(2.weeks.ago)
 
         table.tick(Time.now, {
-          provisioned_reads: 600.0,
-          provisioned_writes: 800.0,
-          consumed_reads: 20.0,
-          consumed_writes: 30.0,
+                     provisioned_reads: 600.0,
+                     provisioned_writes: 800.0,
+                     consumed_reads: 20.0,
+                     consumed_writes: 30.0,
         })
 
         to_the_future = Time.now + DynamoAutoscale::TableTracker::TIME_WINDOW +
@@ -396,10 +396,10 @@ describe DynamoAutoscale::TableTracker do
         Timecop.travel(to_the_future)
 
         table.tick(Time.now, {
-          provisioned_reads: 600.0,
-          provisioned_writes: 800.0,
-          consumed_reads: 20.0,
-          consumed_writes: 30.0,
+                     provisioned_reads: 600.0,
+                     provisioned_writes: 800.0,
+                     consumed_reads: 20.0,
+                     consumed_writes: 30.0,
         })
       end
 

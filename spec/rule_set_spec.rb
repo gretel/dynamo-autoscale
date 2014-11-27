@@ -69,10 +69,10 @@ describe DynamoAutoscale::RuleSet do
 
       before do
         table.tick(4.minutes.ago, {
-          provisioned_reads: 100.0,
-          provisioned_writes: 200.0,
-          consumed_reads: 90.0,
-          consumed_writes: 30.0,
+                     provisioned_reads: 100.0,
+                     provisioned_writes: 200.0,
+                     consumed_reads: 90.0,
+                     consumed_writes: 30.0,
         })
 
         rules.test(table)

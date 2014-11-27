@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'configuration' do
   it "should crash with no AWS region specified" do
     expect do
-      DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH, aws: { })
+      DynamoAutoscale.setup_from_config(TEST_CONFIG_PATH, aws: {})
     end.to raise_error RuntimeError
   end
 
