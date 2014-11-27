@@ -6,6 +6,9 @@ before_install:
 env:
   matrix:
   - RACK_ENV=test LANG=en_US.UTF-8
+  global:
+  - secure: KsOnZk+rZIDCImTo4cDNDzhBwTLoYmAEidnptfzzfx4lgwmVTBIX/qnKm6LWLzVzAcMkXd5A2vlyWwtSpbVb5sbW7AhvqZLgKN4yPNTSF4QT2p14hnDINKyGzGiLEdP3yxgoJDP9xlViFQpo1WL9Wto4LbUW91g8FZPcMVKjq28=
+  - secure: BHpOf537BMa59IYGRFXmj89qqNpEpajak9baZwjRCiR3DBGjW15HrF6RXECOTZoDoPXtea4gBW3u+nkhD3jjS7M2fwT8Xa9z50S/p/ngsTJpYaSO0PIPdMpc1sMs+bjVEykR1DmzLgSxJ2A90Tbpw+dnuVIboCc9m9vZWKvKQvY=
 install:
 - bundle install --path vendor/bundle --without development --binstubs --retry 2
 language: ruby
@@ -18,4 +21,4 @@ notifications:
 rvm:
 - 2.1.5
 script: bundle exec rake test
-services:
+services: 
