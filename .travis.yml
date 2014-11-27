@@ -11,7 +11,7 @@ env:
   - secure: fiiAFa8p9pMuM3c9EZ+nb+lYv+CG1mQpPqSeqkMB6u1UBGNOpEoVJi/G//OVtoajDww3J3QvCqMeC5qF84gfsZLQCLRhjak2ne29ztS8x0H5fvz0v85aHbZHL0HwzEosrn0TZiKGHstm9EVe1hAh9/uMrUG1QlQB1OHbjJ88tFc=
   - secure: MyLdxaNPFLzBhJ/VxBhn+XU6J2dXx96X6fs4SEAb5Lv7UPVnDKSFLM4DNGFidhtYmlx2pONybs8HJmv3FODubET4nt40BQXkJ6vzYIRc2BLSLdARx+cJdiEWLSqDYLW3ffJSyUXEMuwhrjwD57oD4FvxMKy4CNeLL28kOnmV7dE=
 install:
-- bundle install --path vendor/bundle --without development --binstubs --retry 2
+- bundle install --path=vendor/bundle --without=development --binstubs --retry=3
 language: ruby
 notifications:
   email:
