@@ -1,7 +1,3 @@
-:aws:
-  :access_key_id: "ABRAKADABRAOPENTHEDOOR"
-  :secret_access_key: "WELLYOUSEEMTOBEANEVILINTRUDERGETTHEFU*KOFF"
-  :region: "eu-central-1"
 :email:
   :to: "devop@managing.that.mess.org"
   :from: "ec2-user@scale.like.hell.com"

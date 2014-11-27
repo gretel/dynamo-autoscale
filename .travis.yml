@@ -7,8 +7,9 @@ env:
   matrix:
   - RACK_ENV=test LANG=en_US.UTF-8
   global:
-  - secure: KsOnZk+rZIDCImTo4cDNDzhBwTLoYmAEidnptfzzfx4lgwmVTBIX/qnKm6LWLzVzAcMkXd5A2vlyWwtSpbVb5sbW7AhvqZLgKN4yPNTSF4QT2p14hnDINKyGzGiLEdP3yxgoJDP9xlViFQpo1WL9Wto4LbUW91g8FZPcMVKjq28=
-  - secure: BHpOf537BMa59IYGRFXmj89qqNpEpajak9baZwjRCiR3DBGjW15HrF6RXECOTZoDoPXtea4gBW3u+nkhD3jjS7M2fwT8Xa9z50S/p/ngsTJpYaSO0PIPdMpc1sMs+bjVEykR1DmzLgSxJ2A90Tbpw+dnuVIboCc9m9vZWKvKQvY=
+  - secure: PlQKfXILwBQQCmK3n/NUg/c0Mt+2eWCy+WII7OWcyowG4btvX9Tl1BTWiBVNyO9Jj41LuG7B28Sn3yQPTPil1FNRzaoNTkW1fcjDg3GEv4QiwoqUdLENvDBhfXPDxXpbnhIDJFXWc9WxhvfZm68CEet8/jcCD/KWsvTz9kb0UXA=
+  - secure: fiiAFa8p9pMuM3c9EZ+nb+lYv+CG1mQpPqSeqkMB6u1UBGNOpEoVJi/G//OVtoajDww3J3QvCqMeC5qF84gfsZLQCLRhjak2ne29ztS8x0H5fvz0v85aHbZHL0HwzEosrn0TZiKGHstm9EVe1hAh9/uMrUG1QlQB1OHbjJ88tFc=
+  - secure: MyLdxaNPFLzBhJ/VxBhn+XU6J2dXx96X6fs4SEAb5Lv7UPVnDKSFLM4DNGFidhtYmlx2pONybs8HJmv3FODubET4nt40BQXkJ6vzYIRc2BLSLdARx+cJdiEWLSqDYLW3ffJSyUXEMuwhrjwD57oD4FvxMKy4CNeLL28kOnmV7dE=
 install:
 - bundle install --path vendor/bundle --without development --binstubs --retry 2
 language: ruby
