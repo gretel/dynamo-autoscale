@@ -8,5 +8,5 @@ pkg/
 vendor/
 *.log
 *.gem
-gem_graph.*
+./gem_graph.*
 build.sh
