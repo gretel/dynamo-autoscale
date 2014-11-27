@@ -48,6 +48,14 @@ This project aims to take all of this into consideration and automatically scale
 
 # Installation
 
+## Requirements
+
+This gem has semantic version requirements and uses Bundler. Rubygems will auto-resolve the gems required on installation. For an overview, please see the dependency graph (`bundle viz`):
+
+![alt tag](https://raw.github.com/gretel/dynamo-autoscale-fork/master/doc/gem_graph.png)
+
+## Gem Installation
+
 There is no gem of this fork in the Rubygems index currently. Therefore, you need to download a local copy of this gem and install it manually:
 
     $ gem install dynamo-autoscale-0.4.3.gem
@@ -501,6 +509,27 @@ code):
 All of these components are globally available because most of them need access to each other and it was a pain to pass instances of them around to everybody that needed them.
 
 They're also completely swappable. As long as they implement the right methods you can get your data from anywhere, dispatch your data to anywhere and send your actions to whatever you want. The defaults all work on local data gathered with the `script/historic_data` executable.
+
+## RSpec Tests
+
+A rake task wraps the test suite to run for testing. Please change the values in `config/dynamo-autoscale-test.yml` to reflect your credentials. Nothing else should be changed. Then, please execute
+
+```
+$ bundle exec rake test
+```
+
+and check the results.
+
+## Travis CI
+
+Continous intgeration is done using Travis. Please keep in mind the test requires AWS credentials, therefore the author is not commiting his `.travis.yml` file containing the encrypted credentials. You have to setup Travis on your own.
+
+The configuration values will be overriden as follows:
+
+```
+config[:aws][:access_key_id] = ENV['AWS_ACCESS_KEY']
+config[:aws][:secret_access_key] = ENV['AWS_SECRET_KEY']
+```
 
 ## Contributing
 
