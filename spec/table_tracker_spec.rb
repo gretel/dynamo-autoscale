@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'timecop'
 
 describe DynamoAutoscale::TableTracker do
   let(:table_name) { "test_table" }
