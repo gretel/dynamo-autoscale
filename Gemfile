@@ -4,6 +4,7 @@ gemspec
 
 group :development do
   gem 'bundler'
+  gem 'travis'
   gem 'ruby-graphviz'
 end
 
