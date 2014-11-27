@@ -74,6 +74,8 @@ This library requires AWS access right for CloudWatch and DynamoDB to retrieve d
   - "dynamodb:ListTables"
   - "dynamodb:UpdateTable"
 
+Example policy:
+
 ```
 {
   "Version": "2012-10-17",
@@ -96,11 +98,11 @@ This library requires AWS access right for CloudWatch and DynamoDB to retrieve d
 
 The ARN for the custom policy can be specified as '\*' to allow access to all tables. This is required for the `lament_wastage` command.
 
-The feature to update CloudWatch alarms (`:update_alarms`) on is enabled per default, please allow
+The feature to update CloudWatch alarms (`:update_alarms`) on is enabled per default, please grant this permission accordingly:
 
   - "cloudwatch:PutMetricAlarm"
 
-accordingly:
+Example policy:
 
 ```
 {
@@ -120,9 +122,7 @@ accordingly:
 }
 ```
 
-or disable the feature. *Warning*: You should avoid using wildcards for production use at all!
-
-Please refer to the IAM documentation on how to set fine-grained access limits.
+_Warning_: You should avoid using wildcards for production use at all! Please refer to the IAM documentation on how to set fine-grained access limits.
 
 ### Minimal "getting started" configuration
 
