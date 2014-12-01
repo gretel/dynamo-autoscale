@@ -7,11 +7,9 @@ env:
   matrix:
   - LANG=en_US.UTF-8
   global:
-  - secure: PlQKfXILwBQQCmK3n/NUg/c0Mt+2eWCy+WII7OWcyowG4btvX9Tl1BTWiBVNyO9Jj41LuG7B28Sn3yQPTPil1FNRzaoNTkW1fcjDg3GEv4QiwoqUdLENvDBhfXPDxXpbnhIDJFXWc9WxhvfZm68CEet8/jcCD/KWsvTz9kb0UXA=
-  - secure: fiiAFa8p9pMuM3c9EZ+nb+lYv+CG1mQpPqSeqkMB6u1UBGNOpEoVJi/G//OVtoajDww3J3QvCqMeC5qF84gfsZLQCLRhjak2ne29ztS8x0H5fvz0v85aHbZHL0HwzEosrn0TZiKGHstm9EVe1hAh9/uMrUG1QlQB1OHbjJ88tFc=
-  - secure: MyLdxaNPFLzBhJ/VxBhn+XU6J2dXx96X6fs4SEAb5Lv7UPVnDKSFLM4DNGFidhtYmlx2pONybs8HJmv3FODubET4nt40BQXkJ6vzYIRc2BLSLdARx+cJdiEWLSqDYLW3ffJSyUXEMuwhrjwD57oD4FvxMKy4CNeLL28kOnmV7dE=
+    secure: Te7sjVETtbjQqJ+oiBvAgnWssix/w5mAaz99pRgS3fx3lGqhUArUOLwU2rcNEcvpHkXhMLjT4++8H5xcwtxqc5Z6aodwvkc6IFQCnvc2pYO4FArPTgzkOkNUgbs/Qr/02BNJ/ARcA0VQY6fvFstN+zkGrxJRG0K9iMmzari8mQ0=
 install:
-- bundle install --path=vendor/bundle --without=development --binstubs --retry=3
+- bundle install --path=vendor/bundle --without=development --binstubs --jobs=2 --retry=3
 language: ruby
 notifications:
   email:
@@ -21,5 +19,5 @@ notifications:
     - travis@jitter.eu
 rvm:
 - 2.1.5
-script: bundle exec rake test
+script: bundle exec rake -q test
 services:
