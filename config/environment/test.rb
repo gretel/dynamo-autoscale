@@ -15,7 +15,6 @@ overrides = { :dry_run => true,
                         :secret_access_key => ENV['AWS_SECRET_KEY'] } }
 
 DynamoAutoscale.setup_from_config(DynamoAutoscale.config_dir(TEST_CONFIG_PATH), overrides )
-puts DynamoAutoscale.config.inspect
 
 DynamoAutoscale.require_in_order(
   'spec/helpers/**.rb'
