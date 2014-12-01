@@ -9,6 +9,7 @@ env:
   global:
   - secure: LUEc6YR0xQEE/SC6DmhRVQZtxYN7XoBjzdtNd9k5moT0fV7JIPcUU7WcvNUimGPGixb65RaYeDXsXzRD7g9qaMLCx0nkEF+c4ML+dfqdEciivnGs0mvqFOLgcqboDOj2fizFYQHC8Luq7Y8JtXgbFwgZerFtDHxt89OH3mmjung=
   - secure: lrjYGKfyKcm5ebAkrJe8a7lnPmFiShPoSbAWb9kQWRWDOoTF89Xpq/miEpBp47JkX2A0gMjAPoL25qilLo18UE3i3QcSa3DewmBfCPAzGDUPYClBH3kdyluQ6WEUjbtAKzoppehu/8GNSlyEl/a7S/Wht4hAQ/Yn2EofNLQYq6o=
+  - secure: Y2Wbr0VFhAXvuGv3IMGHODvpFCABWLXDFoWzBbx/FT/urPwSnaV9+wPIaw1OFSUioHYdnqAxDUscIuzqjo7Dh6jnb1aRVilZrk8Xxn9OlEEFnmBlKXlpmxANNt9klntRsqERL3JjNtBuxlPOFcOwkdWqOOnM66r02lesAnGIvAc=
 install:
 - bundle install --path=vendor/bundle --without=development --binstubs --jobs=2 --retry=3
 language: ruby
