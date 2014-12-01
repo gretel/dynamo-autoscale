@@ -7,7 +7,7 @@ env:
   matrix:
   - LANG=en_US.UTF-8
   global:
-    secure: HT+zh9qu5KThif4+p2+/oeZqjYd7nazoBEBgRZrwXR/2DwXEqFUf+XdzGGz/EeJ6lXgWL0+G4W69/dmdGF4JvJ5Fhap1sso2tGW5L+eq3MmaE4o1PGtriknSEXNnAAmG9ciwYE04KM0jRar6KbSHNO9UwZBareYWHD0Jtc7cJpc=
+    secure: LUEc6YR0xQEE/SC6DmhRVQZtxYN7XoBjzdtNd9k5moT0fV7JIPcUU7WcvNUimGPGixb65RaYeDXsXzRD7g9qaMLCx0nkEF+c4ML+dfqdEciivnGs0mvqFOLgcqboDOj2fizFYQHC8Luq7Y8JtXgbFwgZerFtDHxt89OH3mmjung=
 install:
 - bundle install --path=vendor/bundle --without=development --binstubs --jobs=2 --retry=3
 language: ruby
