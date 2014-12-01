@@ -7,7 +7,7 @@ env:
   matrix:
   - LANG=en_US.UTF-8
   global:
-    secure: Te7sjVETtbjQqJ+oiBvAgnWssix/w5mAaz99pRgS3fx3lGqhUArUOLwU2rcNEcvpHkXhMLjT4++8H5xcwtxqc5Z6aodwvkc6IFQCnvc2pYO4FArPTgzkOkNUgbs/Qr/02BNJ/ARcA0VQY6fvFstN+zkGrxJRG0K9iMmzari8mQ0=
+    secure: HT+zh9qu5KThif4+p2+/oeZqjYd7nazoBEBgRZrwXR/2DwXEqFUf+XdzGGz/EeJ6lXgWL0+G4W69/dmdGF4JvJ5Fhap1sso2tGW5L+eq3MmaE4o1PGtriknSEXNnAAmG9ciwYE04KM0jRar6KbSHNO9UwZBareYWHD0Jtc7cJpc=
 install:
 - bundle install --path=vendor/bundle --without=development --binstubs --jobs=2 --retry=3
 language: ruby
@@ -20,4 +20,4 @@ notifications:
 rvm:
 - 2.1.5
 script: bundle exec rake -q test
-services:
+services: 
