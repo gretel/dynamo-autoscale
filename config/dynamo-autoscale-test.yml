@@ -15,6 +15,6 @@
   - "market_shares"
 :group_downscales: true
 :flush_after: 3600
-:minimum_throughput: 1
-:maximum_throughput: 20000
+:minimum_throughput: 10
+:maximum_throughput: 100000
 :update_alarms: true
