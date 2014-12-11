@@ -69,7 +69,7 @@ module DynamoAutoscale
     private
 
     def self.client
-      @@client ||= cloudwatch:GetMetricStatistics.new.client
+      @@client ||= AWS::CloudWatch.new.client
     end
   end
 end
