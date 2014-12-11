@@ -18,6 +18,7 @@ module DynamoAutoscale
           end
         end
         raise RuntimeError.new("Rulset file does not exists") unless File.exists?(ruleset_path)
+        logger.debug "[rule_set] Using ruleset file: '#{ruleset_path}'..."
 
         instance_eval(File.read(ruleset_path))
       elsif not block.nil?
