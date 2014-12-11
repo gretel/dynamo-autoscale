@@ -29,7 +29,7 @@ module DynamoAutoscale
         sleep_duration = INTERVAL - ((Time.now.to_i + INTERVAL) % INTERVAL)
         logger.info "[cw_poller] Sleeping for #{sleep_duration} seconds..."
         sleep(sleep_duration)
-        logger.info "[cw_poller] Querying CloudWatch..."
+        logger.debug "[cw_poller] Querying CloudWatch..."
         now = Time.now
         tables.each do |table_name|
           # This code will dispatch a message to the listening table that looks
