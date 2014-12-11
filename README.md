@@ -8,7 +8,7 @@ The original [authors](https://github.com/invisiblehand/dynamo-autoscale/) do cu
 
 - Command line interface (CLI) (replacing an executable and various scripts)
 - Streamlined workflow using a chain of commands (`check_config`, `check_ruleset`, `pull_cw_data`, `test_simulate`, `start`) using the CLI
-- Revamped logging (syntactically, semantically, and using Yell yo!)
+- Revamped logging (syntactically, semantically, and using `Yell` on `mono_logger`)
 - Can be installed and used without any superuser privileges
 - Supports EC2 region 'eu-central-1'
 - Works on Ruby 2.1 (tested using 2.1.5 as on AMI)
@@ -58,7 +58,7 @@ This gem has semantic version requirements and uses Bundler. Rubygems will auto-
 
 There is no gem of this fork in the Rubygems index currently. Therefore, you need to download a local copy of this gem and install it manually:
 
-    $ gem install dynamo-autoscale-0.5.0.gem
+    $ gem install dynamo-autoscale-0.5.3.gem
 
 This will install the gem containing the `dynamo-autoscale` executable. Please check the Rubygems documentation on where to expect the executable to be located. On Amazon Linux it will be in `/usr/local/bin`/. You might have to adjust your PATH environment variable accordingly.
 
