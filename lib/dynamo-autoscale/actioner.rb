@@ -90,7 +90,7 @@ module DynamoAutoscale
 
       # TODO: abstraction
       if ptime and ptime > 2.minutes.ago
-        logger.warn "[actioner] [#{metric}] Scaling is allowed every two minutes, skipping."
+        logger.warn "[actioner] [#{table.name}:#{metric}] Scaling is allowed every two minutes, skipping."
         return false
       end
 
@@ -99,23 +99,23 @@ module DynamoAutoscale
       if from and to > (from * 2)
         to = from * 2
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale up more than allowed. Capped scale to #{to.round(2)}."
+        logger.warn "[actioner] [#{table.name}:#{metric}] Attempted to scale up more than allowed. Capped scale to #{to.round(2)}."
       end
 
       if to < Actioner.minimum_throughput
         to = Actioner.minimum_throughput
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale down to less than minimum throughput. Capped scale to #{to.round(2)}."
+        logger.warn "[actioner] [#{table.name}:#{metric}] Attempted to scale down to less than minimum throughput. Capped scale to #{to.round(2)}."
       end
 
       if to > Actioner.maximum_throughput
         to = Actioner.maximum_throughput
 
-        logger.warn "[actioner] [#{metric}] Attempted to scale up to greater than maximum throughput. Capped scale to #{to.round(2)}."
+        logger.warn "[actioner] [#{table.name}:#{metric}] Attempted to scale up to greater than maximum throughput. Capped scale to #{to.round(2)}."
       end
 
       if from and from == to
-        logger.debug "[actioner] [#{metric}] Value has not changed. Ignoring..."
+        logger.debug "[actioner] [#{table.name}:#{metric}] Value has not changed. Ignoring..."
         return false
       end
 
@@ -127,7 +127,7 @@ module DynamoAutoscale
     end
 
     def upscale metric, from, to
-      logger.info "[actioner] [#{metric}] Scaling UP: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
+      logger.info "[actioner] [#{table.name}:#{metric}] Scaling UP: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
 
       now = Time.now.utc
 
@@ -156,9 +156,9 @@ module DynamoAutoscale
       end
 
       if @pending[metric]
-        logger.info "[actioner] [#{metric}] Scaling DOWN: #{@pending[metric]} -> #{to.round(2)} (writes pending!)"
+        logger.info "[actioner] [#{table.name}:#{metric}] Scaling DOWN: #{@pending[metric]} -> #{to.round(2)} (writes pending!)"
       else
-        logger.info "[actioner] [#{metric}] Scaling DOWN: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
+        logger.info "[actioner] [#{table.name}:#{metric}] Scaling DOWN: #{from ? from.round(2) : "Unknown"} -> #{to.round(2)}"
       end
       queue_operation! metric, from, to
     end

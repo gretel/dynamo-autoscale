@@ -50,7 +50,7 @@ module DynamoAutoscale
 
         # The only thing we want to update is the threshold
         update_opts[:threshold] = alarm[:threshold] * scale
-        logger.info "[alarms] Changing CloudWatch alarm threshold: #{alarm[:threshold]} -> #{update_opts[:threshold]}"
+        logger.info "[alarms] Changing CloudWatch alarm threshold for '#{table_name}': #{alarm[:threshold]} -> #{update_opts[:threshold]}"
         # Update metric alarm
         begin
           client.put_metric_alarm(update_opts)
@@ -69,7 +69,7 @@ module DynamoAutoscale
     private
 
     def self.client
-      @@client ||= AWS::CloudWatch.new.client
+      @@client ||= cloudwatch:GetMetricStatistics.new.client
     end
   end
 end
