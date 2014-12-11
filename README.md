@@ -100,6 +100,7 @@ The ARN for the custom policy can be specified as '\*' to allow access to all ta
 
 The feature to update CloudWatch alarms (`:update_alarms`) on is enabled per default, please grant this permission accordingly:
 
+  - "cloudwatch:GetMetricStatistics"
   - "cloudwatch:PutMetricAlarm"
 
 Example policy:
@@ -112,6 +113,7 @@ Example policy:
       "Sid": "Stmt1417095341000",
       "Effect": "Allow",
       "Action": [
+        "cloudwatch:GetMetricStatistics",
         "cloudwatch:PutMetricAlarm"
       ],
       "Resource": [
