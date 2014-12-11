@@ -1,10 +1,11 @@
 PATH
   remote: .
   specs:
-    dynamo-autoscale-fork (0.5.0)
+    dynamo-autoscale-fork (0.5.1)
       activesupport (~> 4.1)
       aws-sdk-v1 (~> 1)
       commander (~> 4)
+      mono_logger (~> 1)
       oj (~> 2)
       oj_mimic_json (~> 1)
       pony (~> 1)
@@ -22,7 +23,7 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
     addressable (2.3.6)
-    aws-sdk-v1 (1.59.0)
+    aws-sdk-v1 (1.59.1)
       json (~> 1.4)
       nokogiri (>= 1.4.4)
     backports (3.6.4)
@@ -56,6 +57,7 @@ GEM
     mime-types (2.4.3)
     mini_portile (0.6.1)
     minitest (5.4.3)
+    mono_logger (1.1.0)
     multi_json (1.10.1)
     multipart-post (2.0.0)
     net-http-persistent (2.9.4)
@@ -73,7 +75,7 @@ GEM
     pusher-client (0.6.0)
       json
       websocket (~> 1.0)
-    rake (10.4.0)
+    rake (10.4.2)
     rbtree (0.4.2)
     rspec (3.1.0)
       rspec-core (~> 3.1.0)
