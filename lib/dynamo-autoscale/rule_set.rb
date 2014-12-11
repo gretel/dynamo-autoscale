@@ -9,8 +9,16 @@ module DynamoAutoscale
       @current_table = :all
 
       if not path.nil?
-        ruleset_path = File.realpath(DynamoAutoscale.rulesets_dir(path))
-        raise RuntimeError.new("Rulset file '#{ruleset_path}' does not exist") unless File.exists?(ruleset_path)
+        ruleset_path = path
+        unless File.exists?(ruleset_path)
+          # try absolute path
+          begin
+            ruleset_path = File.realpath(DynamoAutoscale.rulesets_dir(path))
+          rescue
+          end
+        end
+        raise RuntimeError.new("Rulset file does not exists") unless File.exists?(ruleset_path)
+
         instance_eval(File.read(ruleset_path))
       elsif not block.nil?
         instance_eval(&block)
