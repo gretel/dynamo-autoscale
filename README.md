@@ -11,7 +11,7 @@ The original [authors](https://github.com/invisiblehand/dynamo-autoscale/) do cu
 - Revamped logging (syntactically, semantically, and using `Yell` on `mono_logger`)
 - Can be installed and used without any superuser privileges
 - Supports EC2 region 'eu-central-1'
-- Works on Ruby 2.1 (tested using 2.1.5 as on AMI)
+- Works on Ruby 2 and up (tested using 2.1.5 as on AMI)
 - Tests migrated to RSpec 3
 - Fixed some logic glitches (nothing major though)
 - Improved robustness (added sanity checks, exception handling)
@@ -598,4 +598,4 @@ Report Issues/Feature requests on
 
 ### Copyright
 
-Copyright (c) 2013 InvisibleHand Software Ltd., Copyright (c) 2014 Tom Hensel IT Services. See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
+Copyright (c) 2013 InvisibleHand Software Ltd., Copyright (c) 2014-2015 Tom Hensel IT Services. See [LICENSE](https://github.com/gretel/dynamo-autoscale-fork/blob/master/LICENSE) for details.
