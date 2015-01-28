@@ -38,7 +38,7 @@ module DynamoAutoscale
                 end],
               ]
             end]
-            @cache[table_name][day_path] = data
+            @cache[table_name] = data
             block.call(table_name, data)
           end
         end
