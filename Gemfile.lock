@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dynamo-autoscale-fork (0.5.2)
+    dynamo-autoscale-fork (0.5.3)
       activesupport (~> 4.1)
       aws-sdk-v1 (~> 1)
       commander (~> 4)
